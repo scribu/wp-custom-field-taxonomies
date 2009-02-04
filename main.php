@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.5.2a
+Version: 0.5.2
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -145,9 +145,9 @@ class cfTaxonomies {
 	function get_meta_url($key, $value) {
 		global $wp_rewrite;
 
-		$front = $wp_rewrite->using_permalinks ? $wp_rewrite->front : trailingslashit(get_bloginfo('url'));
+		$front = $wp_rewrite->using_permalinks ? rtrim($wp_rewrite->front, '/') : rtrim(get_bloginfo('url'), '/');
 
-		return sprintf($front.'?%s=%s', urlencode($key), urlencode($value));
+		return sprintf($front.'/?%s=%s', urlencode($key), urlencode($value));
 	}
 }
 
