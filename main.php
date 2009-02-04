@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.5.1
+Version: 0.5.2a
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -30,6 +30,8 @@ class cfTaxonomies {
 	var $value;
 
 	var $is_meta;
+
+// Setup functions
 
 	function __construct() {
 		$this->map = $GLOBALS['CFT_options']->get('map');
@@ -76,7 +78,7 @@ class cfTaxonomies {
 			return " $sep " . $this->get_meta_title();
 	}
 
-// END Setup
+// Template tags
 
 	function get_meta_title($format = '%key%: %value%') {
 		return str_replace(array('%key%', '%value%'), array($this->map[$this->key], stripslashes($this->value)), $format);
@@ -95,34 +97,6 @@ class cfTaxonomies {
 			return implode($glue, $values);
 		else
 			return reset($values);
-	}
-
-	function get_meta_url($key, $value) {
-		global $wp_rewrite;
-
-		$front = $wp_rewrite->using_permalinks ? $wp_rewrite->front : trailingslashit(get_bloginfo('url'));
-
-		return sprintf($front.'?%s=%s', $key, urlencode($value));
-	}
-
-	function get_meta_values($key, $auth_id) {
-		global $wpdb;
-
-		if ( !empty($auth_id) )
-			$extra_clause = "AND p.post_author = {$auth_id}";
-
-		$values = $wpdb->get_results($wpdb->prepare("
-			SELECT m.meta_value AS name, COUNT(m.meta_value) AS count
-			FROM {$wpdb->postmeta} m
-			JOIN {$wpdb->posts} p ON m.post_id = p.ID
-			WHERE p.post_status = 'publish'
-			AND m.meta_key = '{$key}'
-			{$extra_clause}
-			GROUP BY m.meta_value
-			ORDER BY COUNT(m.meta_value)
-		"));
-
-		return $values;
 	}
 
 	function meta_cloud($key, $auth_id = '', $args = '') {
@@ -145,6 +119,36 @@ class cfTaxonomies {
 		else
 			echo $return;
 	}
+
+// Base functions
+
+	function get_meta_values($key, $auth_id) {
+		global $wpdb;
+
+		if ( !empty($auth_id) )
+			$extra_clause = "AND p.post_author = {$auth_id}";
+
+		$values = $wpdb->get_results($wpdb->prepare("
+			SELECT m.meta_value AS name, COUNT(m.meta_value) AS count
+			FROM {$wpdb->postmeta} m
+			JOIN {$wpdb->posts} p ON m.post_id = p.ID
+			WHERE p.post_status = 'publish'
+			AND m.meta_key = '{$key}'
+			{$extra_clause}
+			GROUP BY m.meta_value
+			ORDER BY COUNT(m.meta_value)
+		"));
+
+		return $values;
+	}
+
+	function get_meta_url($key, $value) {
+		global $wp_rewrite;
+
+		$front = $wp_rewrite->using_permalinks ? $wp_rewrite->front : trailingslashit(get_bloginfo('url'));
+
+		return sprintf($front.'?%s=%s', urlencode($key), urlencode($value));
+	}
 }
 
 // Init
@@ -160,7 +164,8 @@ function cft_init() {
 		new settingsCFT(__FILE__);
 	}
 
-	include_once(dirname(__FILE__) . '/meta-template.php');
+	include_once(dirname(__FILE__) . '/template-tags.php');
 }
 
 cft_init();
+
