@@ -22,6 +22,7 @@ class settingsCFT extends scbOptionsPage_06 {
 
 	public function page_head() {
 		wp_enqueue_script('cft_table', $this->plugin_url . '/inc/table.js', array('jquery'));
+
 ?>
 <style type="text/css">
 td {vertical-align: middle}
@@ -106,9 +107,11 @@ input.widefat {display: block; width: 200px}
 		check_admin_referer($this->nonce);
 
 		if ( !empty($_POST['key']) )
-		foreach ( $_POST['key'] as $i => $key )
+		foreach ( $_POST['key'] as $i => $key ) {
+			$key = str_replace(' ', '_', trim($key));
 			if ( !empty($key) )
-				$new_map[$key] = $_POST['title'][$i];
+				$new_map[$key] = trim($_POST['title'][$i]);
+		}
 
 		$this->options->update(array('map' => $new_map));
 
