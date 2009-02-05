@@ -23,10 +23,10 @@ function get_meta_title($format = '%key%: %value%') {
 // $id: usually $post->ID
 // $key: one of the defined taxonomy keys
 // $glue: what to put between values (optional)
-function get_linked_meta($id, $key, $glue = ', ') {
+function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 	global $cfTaxonomies;
 
-	return $cfTaxonomies->get_linked_meta($id, $key, $glue);
+	return $cfTaxonomies->get_linked_meta($id, $key, $glue, $relative);
 }
 
 /*
@@ -48,3 +48,22 @@ function get_meta_taxonomies() {
 
 	return $cfTaxonomies->map;
 }
+
+// EXTRA TEMPLATE TAG
+// This is based on the other template tags and is provided for convenience. (should be used within The Loop)
+// You can copy the following function into your functions.php theme file and modify it to your needs. (Don't forget to give it a different name)
+
+function all_meta_info() {
+	global $post;
+
+	foreach ( get_meta_taxonomies() as $key => $name ) {
+		$value = get_linked_meta($post->ID, $key);
+
+		if ( $value )
+			$output .= sprintf("\t<tr><th><strong>%s</strong></th><td>%s</td></tr>\n", $name, $value);
+	}
+
+	if ( $output )
+		echo "<table id='extra-info' cellspacing='0'>\n{$output}</table>\n";
+}
+

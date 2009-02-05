@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.5.3
+Version: 0.6a
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -37,8 +37,7 @@ class cfTaxonomies {
 			return;
 
 		// Retrieve appropriate posts
-		add_filter('posts_join', array($this, 'posts_join'));
-		add_filter('posts_groupby', array($this, 'posts_groupby'));
+		add_filter('request', array($this, 'set_query'));
 
 		// Customize title and template
 		add_filter('wp_title', array($this, 'set_title'), 20, 3);
@@ -61,26 +60,11 @@ class cfTaxonomies {
 		return $this->is_meta = true;
 	}
 
-	function posts_join($join) {
-		global $wpdb;
+	function set_query($request) {
+		$request['meta_key'] = key($this->matches);
+		$request['meta_value'] = reset($this->matches);
 
-// If IN is used, it will act like 'key=value OR foo=bar' not 'key=value AND foo=bar'
-//		foreach ( $this->matches as $key => $value )
-//			$bits .= " AND m.meta_key = '{$key}' AND m.meta_value = '{$value}'";
-
-		$bits .= sprintf(" AND m.meta_key = '%s' AND m.meta_value = '%s'", key($this->matches), reset($this->matches));
-
-		$join .= "JOIN {$wpdb->postmeta} m ON (m.post_id = {$wpdb->posts}.ID {$bits})";
-
-		return $join;
-	}
-
-	function posts_groupby($group) {
-		global $wpdb;
-
-		$group .= " {$wpdb->posts}.ID ";
-
-		return $group;
+		return $request;
 	}
 
 	function add_template() {
@@ -114,14 +98,7 @@ class cfTaxonomies {
 		return implode(' or ', $title);
 	}
 
-	function is_defined($key) {
-		if ( ! $r = in_array($key, array_keys($this->map)) )
-			trigger_error("'{$key}' is not defined as a custom taxonomy", E_USER_WARNING);
-
-		return $r;
-	}
-
-	function get_linked_meta($id, $key, $glue = ', ') {
+	function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 		if ( ! $this->is_defined($key) )
 			return false;
 
@@ -131,7 +108,7 @@ class cfTaxonomies {
 			return false;
 
 		foreach ( $values as $i => $value )
-			$values[$i] = sprintf('<a href="%s">%s</a>', $this->get_meta_url($key, $value), $value);
+			$values[$i] = sprintf('<a href="%s">%s</a>', $this->get_meta_url($key, $value, $relative), $value);
 
 		if ( count($values) > 1 )
 			return implode($glue, $values);
@@ -164,6 +141,12 @@ class cfTaxonomies {
 	}
 
 // Base functions
+	function is_defined($key) {
+		if ( ! $r = in_array($key, array_keys($this->map)) )
+			trigger_error("'{$key}' is not defined as a custom taxonomy", E_USER_WARNING);
+
+		return $r;
+	}
 
 	function get_meta_values($key, $auth_id) {
 		global $wpdb;
@@ -185,12 +168,22 @@ class cfTaxonomies {
 		return $values;
 	}
 
-	function get_meta_url($key, $value) {
+	function get_meta_url($key, $value, $relative = false) {
 		global $wp_rewrite;
 
-		$front = $wp_rewrite->using_permalinks ? rtrim($wp_rewrite->front, '/') : rtrim(get_bloginfo('url'), '/');
+		$match = $key . '=' . urlencode($value);
 
-		return sprintf($front.'/?%s=%s', $key, urlencode($value));
+		if ( $relative ) {
+			$url = '?';
+			if ( $_SERVER['QUERY_STRING'] )
+				$url .= $_SERVER['QUERY_STRING'] . '&';
+			$url .= $match;
+		} else {
+			$front = $wp_rewrite->using_permalinks ? rtrim($wp_rewrite->front, '/') : rtrim(get_bloginfo('url'), '/');
+			$url = $front . '/?' . $match;
+		}
+
+		return $url;
 	}
 }
 

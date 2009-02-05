@@ -53,3 +53,10 @@ If you want to display linked values from that field for each post, add this ins
 
 `<p>Mood: <?php echo get_linked_meta($post->ID, 'yourfield') ?></p>`
 
+== Frequently Asked Questions ==
+= Why isn't it working with my theme? =
+This is probably because you have `query_posts` somewhere in there. An easy workaround:
+1. Create a new file in your theme directory and call it meta.php
+1. Copy everything from index.php to meta.php
+1. In meta.php, remove any calls to query_posts()
+1. Make additional customizations, if necessary.
