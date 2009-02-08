@@ -1,9 +1,9 @@
 <?php
-if ( !class_exists('scbOptionsPage_06') )
+if ( !class_exists('scbOptionsPage_07') )
 	require_once(dirname(__FILE__) . '/inc/scbOptionsPage.php');
 
 // Adds the CFI Settings page
-class settingsCFT extends scbOptionsPage_06 {
+class settingsCFT extends scbOptionsPage_07 {
 	protected function setup() {
 		$this->options = $GLOBALS['CFT_options'];
 

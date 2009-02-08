@@ -1,16 +1,17 @@
 <?php
 
-// Version 0.6
+// Version 0.7
 
 if ( ! class_exists('scbForms_06') )
 	require_once(dirname(__FILE__) . '/scbForms.php');
 
-abstract class scbOptionsPage_06 extends scbForms_06 {
+abstract class scbOptionsPage_07 extends scbForms_06 {
 	// Page args
 	protected $args = array(
 		'page_title' => '',
 		'short_title' => '',
-		'page_slug' => ''
+		'page_slug' => '',
+		'type' => 'settings'
 	);
 
 	// Nonce string
@@ -30,10 +31,11 @@ abstract class scbOptionsPage_06 extends scbForms_06 {
 
 
 	// Main constructor
-	public function __construct($file) {
+	public function __construct($file = '') {
 		$this->set_url($file);
 
 		$this->setup();
+		$this->check_args();
 
 		if ( isset($this->options) )
 			$this->options->setup($file, $this->defaults);
@@ -119,13 +121,23 @@ abstract class scbOptionsPage_06 extends scbForms_06 {
 //_____HELPER METHODS (SHOULD NOT BE CALLED DIRECTLY)_____
 
 
-	// Set plugin_dir
-	protected function set_url($file) {
-		if ( function_exists('plugins_url') )
-			$this->plugin_url = plugins_url(plugin_basename(dirname($file)));
-		else
-			// < WP 2.6
-			$this->plugin_url = get_option('siteurl') . '/wp-content/plugins/' . plugin_basename(dirname($file));
+	// Checks and sets default args
+	protected function check_args() {
+		if ( ! in_array($this->args['type'], array('settings', 'tools')) ) {
+			if ( !empty($this->args['type']) )
+				trigger_error('Invalid page type:'.$this->args['type'], E_USER_WARNING);
+
+			$this->args['type'] = 'settings';
+		}
+
+		if ( empty($this->args['page_title']) )
+			trigger_error('Page title cannot be empty', E_USER_ERROR);
+
+		if ( empty($this->args['short_title']) )
+			$this->args['short_title'] = $this->args['page_title'];
+
+		if ( empty($this->args['page_slug']) )
+			$this->args['page_slug'] = sanitize_title_with_dashes($this->args['short_title']);
 	}
 
 	// Registers a page
@@ -134,7 +146,11 @@ abstract class scbOptionsPage_06 extends scbForms_06 {
 			return false;
 
 		extract($this->args);
-		$page = add_options_page($short_title, $short_title, 8, $page_slug, array($this, 'page_content'));
+
+		if ( 'settings' == $type )
+			$page = add_options_page($short_title, $short_title, 8, $page_slug, array($this, 'page_content'));
+		elseif ( 'tools' == $type )
+			$page = add_management_page($short_title, $short_title, 8, $page_slug, array($this, 'page_content'));
 
 		add_action( "admin_print_scripts-$page", array($this, 'page_head'));
 	}
@@ -152,5 +168,14 @@ abstract class scbOptionsPage_06 extends scbForms_06 {
 		$this->options->update($new_options);
 
 		echo '<div class="updated fade"><p>Settings <strong>saved</strong>.</p></div>';
+	}
+
+	// Set plugin_dir
+	protected function set_url($file) {
+		if ( function_exists('plugins_url') )
+			$this->plugin_url = plugins_url(plugin_basename(dirname($file)));
+		else
+			// < WP 2.6
+			$this->plugin_url = get_option('siteurl') . '/wp-content/plugins/' . plugin_basename(dirname($file));
 	}
 }

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.6
+Version: 0.6.2
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -24,17 +24,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 class cfTaxonomies {
-	var $map;
-	var $matches;
-	var $is_meta;
+	public $map;
+	public $matches;
+	public $is_meta;
 
-// Setup functions
+// Setup methods
 
-	function __construct() {
-		$this->map = $GLOBALS['CFT_options']->get('map');
+	public function __construct() {
+		$this->map = (array) $GLOBALS['CFT_options']->get('map');
 
 		if ( !$this->detect_query() )
-			return;
+			return false;
 
 		// Retrieve appropriate posts
 		add_filter('request', array($this, 'set_query'));
@@ -44,15 +44,15 @@ class cfTaxonomies {
 		add_action('template_redirect', array($this, 'add_template'));
 	}
 
-	function detect_query() {
-		if ( empty($_GET) )
+	private function detect_query() {
+		if ( empty($_GET) || empty($this->map) )
 			return $this->is_meta = false;
 
 		$keys = array_keys($this->map);
 
 		foreach ( $_GET as $key => $value )
 			if ( in_array($key, $keys) )
-				$this->matches[$key] = htmlentities($value);
+				$this->matches[$key] = wp_specialchars($value);
 
 		if ( empty($this->matches) )
 			return $this->is_meta = false;
@@ -60,14 +60,14 @@ class cfTaxonomies {
 		return $this->is_meta = true;
 	}
 
-	function set_query($request) {
+	public function set_query($request) {
 		$request['meta_key'] = key($this->matches);
 		$request['meta_value'] = reset($this->matches);
 
 		return $request;
 	}
 
-	function add_template() {
+	public function add_template() {
 		$template = TEMPLATEPATH . "/meta.php";
 		if ( !file_exists($template) )
 			return;
@@ -76,7 +76,7 @@ class cfTaxonomies {
 		die();
 	}
 
-	function set_title($title, $sep, $seplocation = '') {
+	public function set_title($title, $sep, $seplocation = '') {
 		if ( 'right' == $seplocation )
 			return $this->get_meta_title() . " $sep ";
 		else
@@ -85,7 +85,7 @@ class cfTaxonomies {
 
 // Template tags
 
-	function get_meta_title($format = '%key%: %value%') {
+	public function get_meta_title($format = '%key%: %value%') {
 		foreach ( $this->matches as $key => $value ) {
 			$name = $this->map[$key];
 
@@ -98,7 +98,7 @@ class cfTaxonomies {
 		return implode(' or ', $title);
 	}
 
-	function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
+	public function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 		if ( ! $this->is_defined($key) )
 			return false;
 
@@ -116,7 +116,7 @@ class cfTaxonomies {
 			return reset($values);
 	}
 
-	function meta_cloud($key, $auth_id = '', $args = '') {
+	public function meta_cloud($key, $auth_id = '', $args = '') {
 		if ( ! $this->is_defined($key) )
 			return false;
 
@@ -140,15 +140,16 @@ class cfTaxonomies {
 			echo $return;
 	}
 
-// Base functions
-	function is_defined($key) {
+// Helper methods
+
+	private function is_defined($key) {
 		if ( ! $r = in_array($key, array_keys($this->map)) )
 			trigger_error("'{$key}' is not defined as a custom taxonomy", E_USER_WARNING);
 
 		return $r;
 	}
 
-	function get_meta_values($key, $auth_id) {
+	private function get_meta_values($key, $auth_id) {
 		global $wpdb;
 
 		if ( !empty($auth_id) )
@@ -168,7 +169,7 @@ class cfTaxonomies {
 		return $values;
 	}
 
-	function get_meta_url($key, $value, $relative = false) {
+	private function get_meta_url($key, $value, $relative = false) {
 		global $wp_rewrite;
 
 		$match = $key . '=' . urlencode($value);
