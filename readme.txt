@@ -11,13 +11,15 @@ Use custom fields as ad-hoc taxonomies.
 With this powerfull plugin you can enhance the capabilities of your site by making some of your custom fields act like tags:
 
 = Sort posts in new ways =
-You can have urls as simple as
+You can have URLs as simple as
 
-*http://yoursite.com/?foo=bar* (displays posts which have a meta key 'foo' with the value 'bar')
+http://yoursite.com/?foo=bar
+(displays posts which have a meta key 'foo' with the value 'bar')
 
 and as complex as
 
-*http://yoursite.com/?s=anything&key1=valueA&key2=valueB...* (posts that match any regular WordPress query AND match each key=value pair)
+http://yoursite.com/?s=anything&key1=valueA&key2=valueB...
+(posts that match any regular WordPress query AND match each key=value pair)
 
 = Use built in template tags =
 * **meta_cloud()** displays all the tags for a selected taxonomy (can also be restricted by author)
