@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.6.2
+Version: 0.7
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -37,7 +37,10 @@ class cfTaxonomies {
 			return false;
 
 		// Retrieve appropriate posts
-		add_filter('request', array($this, 'set_query'));
+		if ( 1 == count($this->matches) )
+			add_filter('request', array($this, 'single_match'));
+		else
+			add_filter('posts_where', array($this, 'multiple_match'));
 
 		// Customize title and template
 		add_filter('wp_title', array($this, 'set_title'), 20, 3);
@@ -60,20 +63,48 @@ class cfTaxonomies {
 		return $this->is_meta = true;
 	}
 
-	public function set_query($request) {
+	// Use built in request args
+	public function single_match($request) {
 		$request['meta_key'] = key($this->matches);
 		$request['meta_value'] = reset($this->matches);
 
 		return $request;
 	}
 
+	// Find posts manually
+	public function multiple_match($where) {
+		global $wpdb;
+
+		$nr = count($this->matches);
+
+		// Build CASE clauses
+		foreach ( $this->matches as $key => $value )
+			$clauses .= "WHEN '{$key}' THEN '$value'\n";
+
+		// Get posts that have all key=>value matches
+		$query = $wpdb->prepare("
+			SELECT post_id
+			FROM {$wpdb->postmeta}
+			WHERE meta_value =
+				CASE meta_key
+					{$clauses}
+				END
+			GROUP BY post_id
+			HAVING COUNT(post_id) = {$nr}
+		");
+
+		// Preserve other clauses
+		return $where . "AND {$wpdb->posts}.ID IN ($query)";
+	}
+
 	public function add_template() {
 		$template = TEMPLATEPATH . "/meta.php";
-		if ( !file_exists($template) )
-			return;
+		if ( file_exists($template) ) {
+			include($template);
+			die();
+		}
 
-		include($template);
-		die();
+		return;
 	}
 
 	public function set_title($title, $sep, $seplocation = '') {
@@ -85,7 +116,7 @@ class cfTaxonomies {
 
 // Template tags
 
-	public function get_meta_title($format = '%key%: %value%') {
+	public function get_meta_title($format = '%key%: %value%', $between = ' and ') {
 		foreach ( $this->matches as $key => $value ) {
 			$name = $this->map[$key];
 
@@ -95,7 +126,7 @@ class cfTaxonomies {
 			$title[] = str_replace(array('%key%', '%value%'), array($name, stripslashes($value)), $format);
 		}
 
-		return implode(' or ', $title);
+		return implode($between, $title);
 	}
 
 	public function get_linked_meta($id, $key, $glue = ', ', $relative = false) {

@@ -1,7 +1,6 @@
 === Custom Field Taxonomies ===
 Contributors: scribu
-Donate link: http://scribu.net/projects
-Tags: custom fields, meta, metadata, taxonomy, sort
+Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.5
 Tested up to: 2.7.1
 Stable tag: trunk
@@ -9,33 +8,33 @@ Stable tag: trunk
 Use custom fields as ad-hoc taxonomies.
 
 == Description ==
-Use custom fields as ad-hoc taxonomies:
+With this powerfull plugin you can enhance the capabilities of your site by making some of your custom fields act like tags:
 
-= Sort posts by custom field values =
-If you go to a url like http://yoursite.com/?foo=bar you will see only posts which have a custom field with the key 'foo' with the value 'bar'.
+= Sort posts in new ways =
+You can have urls as simple as
 
-= Several template tags =
-You can find out more about template tags by looking at `template-tags.php`
+*http://yoursite.com/?foo=bar* (displays posts which have a meta key 'foo' with the value 'bar')
 
-* `meta_cloud()` for each taxonomy (can also be restricted by author)
-* `get_linked_meta()` works just like get_post_meta() with the difference that the values are linked to the sorted post
-* `get_meta_taxonomies()` returns all defined taxonomies as an associative array
-* `get_meta_title()` return the current key and value to be used as the page title
-* `is_meta()` is a conditional tag that indicates if you're on the sorted posts
+and as complex as
 
-= Theme template =
-If you want post sorted by metadata be displayed differently you can:
-Go to your theme directory, make a copy of index.php and call it meta.php.
-You can edit meta.php like any other theme file to suit your needs.
+*http://yoursite.com/?s=anything&key1=valueA&key2=valueB...* (posts that match any regular WordPress query AND match each key=value pair)
 
-= Settings page =
-It also has a nice settings page where you can define which fields to be used as taxonomies.
+= Use built in template tags =
+* **meta_cloud()** displays all the tags for a selected taxonomy (can also be restricted by author)
+* **get_linked_meta()** works just like get_post_meta() with the difference that the values are links, not text
+* **get_meta_taxonomies()** returns all defined taxonomies as an associative array
+* **get_meta_title()** return the current key and value to be used as the page title
+* **is_meta()** is a conditional tag that indicates if you're on a meta taxonomy page
 
-Features still to be added:
+You can find out more about the available template tags by looking in the **template-tags.php** file
 
-* import from Custom Field Template plugin
-* widgets
-* permalinks
+= Use the new theme template =
+If you want post sorted by metadata to be displayed differently you can:
+Go to your theme directory and create a new file called meta.php.
+Edit it like any other theme file to suit your needs.
+
+= Easily choose the keys you will use =
+In the settings page you can select which custom fields to register as meta taxonomies.
 
 == Installation ==
 
@@ -53,9 +52,13 @@ If you want to display linked values from that field for each post, add this ins
 
 `<p>Mood: <?php echo get_linked_meta($post->ID, 'yourfield') ?></p>`
 
+This will output:
+
+Mood: [happy](http://yoursite.com/?mood=happy)
+
 == Frequently Asked Questions ==
 = Why isn't it working with my theme? =
-This is probably because you have `query_posts` somewhere in there. An easy workaround:
+This is probably because you have **query_posts** somewhere in there. An easy workaround:
 1. Create a new file in your theme directory and call it meta.php
 1. Copy everything from index.php to meta.php
 1. In meta.php, remove any calls to query_posts()

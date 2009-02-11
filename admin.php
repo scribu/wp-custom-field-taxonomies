@@ -18,11 +18,13 @@ class settingsCFT extends scbOptionsPage_07 {
 		);
 
 		$this->nonce = 'cft-settings';
+
+		// Suggest
+		add_action('wp_ajax_meta-key-search', array($this, 'ajax_meta_key'));
 	}
 
 	public function page_head() {
-		wp_enqueue_script('cft_table', $this->plugin_url . '/inc/table.js', array('jquery'));
-
+		wp_enqueue_script('cft_table', $this->plugin_url . '/inc/table.js', array('jquery', 'suggest'), '0.7');
 ?>
 <style type="text/css">
 td {vertical-align: middle}
@@ -116,5 +118,23 @@ input.widefat {display: block; width: 200px}
 		$this->options->update(array('map' => $new_map));
 
 		echo '<div class="updated fade"><p>Settings <strong>saved</strong>.</p></div>';
+	}
+
+	public function ajax_meta_key() {
+		global $wpdb;
+
+		$key = trim($_GET['key']);
+		$hint = trim($_GET['q']);
+
+		$values = $wpdb->get_col("
+			SELECT DISTINCT meta_key
+			FROM {$wpdb->postmeta}
+			WHERE meta_key LIKE ('%{$hint}%')
+			AND meta_key NOT LIKE ('\_%')
+			ORDER BY meta_key ASC
+		");
+
+		echo join($values, "\n");
+		die();
 	}
 }

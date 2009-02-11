@@ -9,8 +9,15 @@ jQuery(function($) {
 		});
 	}
 
+	init_suggest = function() {
+		$('[name^=key]').each(function() {
+			$(this).suggest('admin-ajax.php?action=meta-key-search', {delay: 200, minchars: 2});
+		});
+	}
+
 $(document).ready(function() {
 	init_delete();
+	init_suggest();
 
 	$('#add').click(function() {
 		row = 
@@ -21,7 +28,8 @@ $(document).ready(function() {
 		'</tr>';
 
 		$(this).parents('tr').before(row);
-		init_delete();
+		init_delete();	// reinitialize
+		init_suggest();	// reinitialize
 	});
 });
 });
