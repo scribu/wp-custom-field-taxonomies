@@ -123,7 +123,6 @@ input.widefat {display: block; width: 200px}
 	public function ajax_meta_key() {
 		global $wpdb;
 
-		$key = trim($_GET['key']);
 		$hint = trim($_GET['q']);
 
 		$values = $wpdb->get_col("

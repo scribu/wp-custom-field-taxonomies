@@ -1,20 +1,20 @@
 <?php
 
-// Version 0.6
+// Version 0.6.0.1
 
 abstract class scbForms_06 {
-/* Generates one or more input fields with labels
-$args =	array (
-*	'type' => 'submit' | 'text' | 'radio' | 'checkbox'
-*	'names' => string | array
-	'values' => string | array
-	'check' => true | false
-	'extra' => string
-	'desc' => string
-	'desc_pos' => 'before' | 'after' | 'none'
-);
-$options = array(values with which to fill)
-*/
+	/* Generates one or more input fields, with labels
+	$args =	array (
+		'type' => any valid <input> type
+		'names' => string | array
+		'values' => string | array (default: 1 or $options['name'])
+		'check' => true | false (default: true)
+		'extra' => string (default: class="widefat")
+		'desc' => string (default: name)
+		'desc_pos' => 'before' | 'after' | 'none' (default: after)
+	);
+	$options = array('name' => 'value'...)
+	*/
 
 	public function input($args, $options = array()) {
 		$token = '%input%';
@@ -42,7 +42,7 @@ $options = array(values with which to fill)
 		// Set default values
 		if ( !isset($values) )
 			if ( 'text' == $type && !$f1 && !$f2 )
-				$values = htmlentities(stripslashes($options[$names]));
+				$values = wp_specialchars($options[$names], ENT_QUOTES);
 			elseif ( in_array($type, array('checkbox', 'radio')) && empty($values) )
 				$values = true;
 
@@ -52,7 +52,7 @@ $options = array(values with which to fill)
 				$a = array_combine($names, $values);
 			elseif ( $f1 && !$f2 )
 				$a = array_fill_keys($names, $values);
-			elseif ( !$f1 && $f2)
+			elseif ( !$f1 && $f2 )
 				$a = array_fill_keys($values, $names);
 
 			if ( $f1 ) {
@@ -106,6 +106,7 @@ $options = array(values with which to fill)
 		return $output;
 	}
 
+	// Adds a form around the $content, including a hidden nonce field
 	public function form_wrap($content, $nonce = '') {
 		if ( empty($nonce) )
 			$nonce = $this->nonce;
@@ -122,7 +123,7 @@ $options = array(values with which to fill)
 //_____HELPER METHODS (SHOULD NOT BE CALLED DIRECTLY)_____
 
 
-	// Used by form_row()
+	// Checks if selected $names have equivalent in $options. Used by form_row()
 	protected function check_names($names, $options) {
 		$names = (array) $names;
 

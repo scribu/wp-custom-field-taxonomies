@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.7
+Version: 0.7.1a
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -33,7 +33,9 @@ class cfTaxonomies {
 	public function __construct() {
 		$this->map = (array) $GLOBALS['CFT_options']->get('map');
 
-		if ( !$this->detect_query() )
+		$this->is_meta = $this->detect_query();
+
+		if ( !$this->is_meta )
 			return false;
 
 		// Retrieve appropriate posts
@@ -48,8 +50,8 @@ class cfTaxonomies {
 	}
 
 	private function detect_query() {
-		if ( empty($_GET) || empty($this->map) )
-			return $this->is_meta = false;
+		if ( empty($_GET) || empty($this->map) || is_admin() )
+			return false;
 
 		$keys = array_keys($this->map);
 
@@ -57,10 +59,7 @@ class cfTaxonomies {
 			if ( in_array($key, $keys) )
 				$this->matches[$key] = wp_specialchars($value);
 
-		if ( empty($this->matches) )
-			return $this->is_meta = false;
-
-		return $this->is_meta = true;
+		return !empty($this->matches);
 	}
 
 	// Use built in request args
