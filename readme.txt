@@ -3,7 +3,7 @@ Contributors: scribu
 Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.5
 Tested up to: 2.7.1
-Stable tag: 0.7
+Stable tag: trunk
 
 Use custom fields as ad-hoc taxonomies.
 

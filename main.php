@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.7.1a
+Version: 0.7.1
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -50,7 +50,7 @@ class cfTaxonomies {
 	}
 
 	private function detect_query() {
-		if ( empty($_GET) || empty($this->map) || is_admin() )
+		if ( is_admin() || empty($_GET) || empty($this->map) )
 			return false;
 
 		$keys = array_keys($this->map);
