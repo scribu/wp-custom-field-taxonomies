@@ -121,14 +121,14 @@ class cfTaxonomies {
 
 // Template tags
 
-	public function get_meta_title($format = '%key%: %value%', $between = ' and ') {
+	public function get_meta_title($format = '%name%: %value%', $between = ' and ') {
 		foreach ( $this->matches as $key => $value ) {
 			$name = $this->map[$key];
 
 			if ( empty($name) )
 				$name = ucfirst($key);
 
-			$title[] = str_replace(array('%key%', '%value%'), array($name, stripslashes($value)), $format);
+			$title[] = str_replace(array('%name%', '%value%'), array($name, stripslashes($value)), $format);
 		}
 
 		return implode($between, $title);

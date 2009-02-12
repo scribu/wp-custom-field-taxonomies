@@ -13,7 +13,7 @@ function is_meta() {
 }
 
 // Display the meta title. You can choose the format.
-function get_meta_title($format = '%key%: %value%', $between = ' and ') {
+function get_meta_title($format = '%name%: %value%', $between = ' and ') {
 	global $cfTaxonomies;
 
 	return $cfTaxonomies->get_meta_title($format, $between);
