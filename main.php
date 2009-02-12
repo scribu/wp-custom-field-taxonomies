@@ -107,10 +107,16 @@ class cfTaxonomies {
 	}
 
 	public function set_title($title, $sep, $seplocation = '') {
-		if ( 'right' == $seplocation )
-			return $this->get_meta_title() . " $sep ";
+		if ( empty($title) )
+			if ( 'right' == $seplocation )
+				return $this->get_meta_title() . " $sep ";
+			else
+				return " $sep " . $this->get_meta_title();
 		else
-			return " $sep " . $this->get_meta_title();
+			if ( 'right' == $seplocation )
+				return $this->get_meta_title() . " $sep " . $title;
+			else
+				return $title . " $sep " . $this->get_meta_title();
 	}
 
 // Template tags
