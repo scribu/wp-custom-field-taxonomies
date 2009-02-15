@@ -1,0 +1,19 @@
+table {width: auto !important; clear:none !important}
+td {vertical-align: middle}
+input.widefat {min-width: 100px; max-width: 200px; _width:150px}
+
+#cf-management {width: 50%; float:right; padding-left: 2em}
+#cf-management td {padding-bottom: 1em}
+#cf-management td + td {padding-left: .2em}
+#cf-management form {margin-bottom: 1em}
+#cf-management input.widefat {display: inline}
+
+#cf-taxonomies input.widefat {display: block}
+#cf-taxonomies .delete {
+	display: block;
+	width: 16px;
+	height: 16px;
+	text-indent: -999px;
+	margin-top: 4.5px;
+	background: url("cancel.png") no-repeat;
+}

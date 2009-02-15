@@ -1,6 +1,6 @@
 <?php
 
-// Version 0.6.0.1
+// Version 0.6.0.3
 
 abstract class scbForms_06 {
 	/* Generates one or more input fields, with labels
@@ -95,15 +95,15 @@ abstract class scbForms_06 {
 				elseif ( 'after' == $desc_pos )
 					$desc = $token . ' ' . $desc;
 			$desc = str_replace($token, $input, $desc);
+			$desc = trim($desc);
 
 			// Add label
 			if ( 'none' == $desc_pos || empty($desc) )
-				$output .= $input;
+				$output[] = $input . "\n";
 			else
-				$output .= sprintf("<label for='%s'>%s</label> ", $$i1, $desc);
+				$output[] = sprintf("<label for='%s'>%s</label>\n", $$i1, $desc);
 		}
-
-		return $output;
+		return implode("\n", $output);
 	}
 
 	// Adds a form around the $content, including a hidden nonce field
@@ -111,10 +111,10 @@ abstract class scbForms_06 {
 		if ( empty($nonce) )
 			$nonce = $this->nonce;
 
-		$output .= "<form method='post' action=''>\n";
-		$output .= wp_nonce_field($action = $nonce, $name = "_wpnonce", $referer = true , $echo = false );
+		$output .= "\n<form method='post' action=''>\n";
 		$output .= $content;
-		$output .= "</form>\n";
+		$output .= wp_nonce_field($action = $nonce, $name = "_wpnonce", $referer = true , $echo = false);
+		$output .= "\n</form>\n";
 
 		return $output;
 	}

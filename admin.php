@@ -20,25 +20,12 @@ class settingsCFT extends scbOptionsPage_07 {
 		$this->nonce = 'cft-settings';
 
 		// Suggest
-		add_action('wp_ajax_meta-key-search', array($this, 'ajax_meta_key'));
+		add_action('wp_ajax_meta-search', array($this, 'ajax_meta_search'));
 	}
 
 	public function page_head() {
-		wp_enqueue_script('cft_table', $this->plugin_url . '/inc/table.js', array('jquery', 'suggest'), '0.7');
-?>
-<style type="text/css">
-td {vertical-align: middle}
-input.widefat {display: block; width: 200px}
-.delete {
-	display: block;
-	width: 16px;
-	height: 16px;
-	text-indent: -999px;
-	margin-top: 4.5px;
-	background: url("<?php echo $this->plugin_url ?>/inc/cancel.png") no-repeat
-}
-</style>
-<?php
+		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '0.7');
+		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '0.7');
 	}
 
 	public function page_content() {
@@ -52,18 +39,40 @@ input.widefat {display: block; width: 200px}
 		}
 */
 		echo $this->page_header();
+?>
+<div class="section" id="cf-management">
+<h3>Replace custom field keys or values</h3>
+<table>
+<?php
+	$output = '';
+	foreach ( array('value', 'key') as $field )
+		$output .= sprintf('
+	<tr>
+		<td>Replace %1$s</td>
+		<td><input class="widefat" name="%1$s_search" value="" type="text" /></td>
+		<td>with</td>
+		<td><input class="widefat" name="%1$s_replace" value="" type="text" /></td>
+		<td><input class="button-primary" name="%1$s_action" value="Go" type="submit" /></td>
+	</tr>
+', $field);
+	echo $this->form_wrap($output);
+?>
+</table>
+</div>
 
+<?php
 		ob_start();
 ?>
-	<table class="widefat" style="width:auto">
-		<thead>
+	<h3>Register taxonomies</h3>
+	<table class="widefat">
+	  <thead>
 		<tr>
 			<th scope="col">Key</th>
 			<th scope="col">Title</th>
 			<th scope="col"></th>
 		</tr>
-		</thead>
-		<tbody>
+	  </thead>
+	  <tbody>
 <?php
 	$map = $this->options->get('map');
 
@@ -81,28 +90,36 @@ input.widefat {display: block; width: 200px}
 					'values' => $title
 				)
 			);
+
+			echo "<tr>\n";
+			foreach ( $rows as $row )
+				echo "\t<td>{$this->input($row)}</td>\n";
+			echo "\t<td><a class='delete' href='#'>Delete</a></td>\n";
+			echo "</tr>\n";
+	 	} 
 ?>
-		<tr>
-		<?php foreach ( $rows as $row ) { ?>
-			<td><?php echo $this->input($row) ?></td>
-		<?php } ?>
-			<td><a class="delete" href="#">Delete</a></td>
-		</tr>
-	<?php } ?>
 		<tr>
 			<td colspan="3"><a id="add" href="#">Add row</a></td>
 		</tr>
-		</tbody>
-		</table>
+	  </tbody>
+	</table>
 <?php
 		echo $this->submit_button();
-		echo $this->form_wrap(ob_get_clean());
+		echo "<div id='cf-taxonomies'>\n" . $this->form_wrap(ob_get_clean()) . "</div>\n";
 
 		echo $this->page_footer();
 	}
 
 	// Custom form handler
 	protected function form_handler() {
+
+		foreach ( array('value', 'key') as $field )
+			if ( isset($_POST["{$field}_action"]) ) {
+				check_admin_referer($this->nonce);
+				$this->do_replace($field, $_POST["{$field}_search"], $_POST["{$field}_replace"]);
+				return;
+			}
+
 		if ( 'Save Changes' != $_POST['action'] )
 			return false;
 
@@ -110,7 +127,7 @@ input.widefat {display: block; width: 200px}
 
 		if ( !empty($_POST['key']) )
 		foreach ( $_POST['key'] as $i => $key ) {
-			$key = str_replace(' ', '_', trim($key));
+			$key = sanitize_title_with_dashes($key);
 			if ( !empty($key) )
 				$new_map[$key] = trim($_POST['title'][$i]);
 		}
@@ -120,20 +137,33 @@ input.widefat {display: block; width: 200px}
 		echo '<div class="updated fade"><p>Settings <strong>saved</strong>.</p></div>';
 	}
 
-	public function ajax_meta_key() {
+	// Helper for form handler
+	private function do_replace($field, $search, $replace) {
+		global $wpdb;
+
+		$meta_field = "meta_{$field}";
+
+		$count = $wpdb->update($wpdb->postmeta, array($meta_field => $replace), array($meta_field => $search));
+
+		echo "<div class='updated fade'><p>Replaced <strong>{$count}</strong> {$field}s: <em>{$search}</em> &raquo; <em>{$replace}</em>.</p></div>";
+	}
+
+	// AJAX response
+	public function ajax_meta_search() {
 		global $wpdb;
 
 		$hint = trim($_GET['q']);
+		$field = 'meta_' . trim($_GET['field']);
 
 		$values = $wpdb->get_col("
-			SELECT DISTINCT meta_key
+			SELECT DISTINCT $field
 			FROM {$wpdb->postmeta}
-			WHERE meta_key LIKE ('%{$hint}%')
+			WHERE $field LIKE ('%{$hint}%')
 			AND meta_key NOT LIKE ('\_%')
-			ORDER BY meta_key ASC
 		");
 
 		echo join($values, "\n");
 		die();
 	}
 }
+

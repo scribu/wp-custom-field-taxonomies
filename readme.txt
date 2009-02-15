@@ -38,6 +38,9 @@ Edit it like any other theme file to suit your needs.
 = Easily choose the keys you will use =
 In the settings page you can select which custom fields to register as meta taxonomies.
 
+= Manage custom fields =
+You can search and replace through both custom field keys and custom field values, from the same settings page.
+
 == Installation ==
 
 1. Unzip the archive and put the folder into your plugins folder (/wp-content/plugins/).

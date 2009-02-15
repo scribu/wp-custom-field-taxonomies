@@ -1,6 +1,6 @@
 <?php
 
-// Version 0.7
+// Version 0.7.0.1
 
 if ( ! class_exists('scbForms_06') )
 	require_once(dirname(__FILE__) . '/scbForms.php');
@@ -152,7 +152,7 @@ abstract class scbOptionsPage_07 extends scbForms_06 {
 		elseif ( 'tools' == $type )
 			$page = add_management_page($short_title, $short_title, 8, $page_slug, array($this, 'page_content'));
 
-		add_action( "admin_print_scripts-$page", array($this, 'page_head'));
+		add_action( "admin_print_styles-$page", array($this, 'page_head'));
 	}
 
 	// Update options
