@@ -24,8 +24,8 @@ class settingsCFT extends scbOptionsPage_07 {
 	}
 
 	public function page_head() {
-		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '0.7');
-		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '0.7');
+		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '0.8');
+		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '0.8');
 	}
 
 	public function page_content() {
