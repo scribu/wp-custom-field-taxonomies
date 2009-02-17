@@ -5,7 +5,7 @@ Version: 0.8
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
-Plugin URI: http://scribu.net/projects/custom-field-taxonomies/
+Plugin URI: http://scribu.net/wordpress/custom-field-taxonomies
 
 Copyright (C) 2009 scribu.net (scribu AT gmail DOT com)
 
