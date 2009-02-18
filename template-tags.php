@@ -59,6 +59,9 @@ function all_meta_info() {
 	foreach ( get_meta_taxonomies() as $key => $name ) {
 		$value = get_linked_meta($post->ID, $key);
 
+		if ( empty($name) )
+			$name = ucfirst($key);
+
 		if ( $value )
 			$output .= sprintf("\t<tr><th><strong>%s</strong></th><td>%s</td></tr>\n", $name, $value);
 	}

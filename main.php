@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.8
+Version: 0.8.1
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -44,9 +44,9 @@ class cfTaxonomies {
 		else
 			add_filter('posts_where', array($this, 'multiple_match'));
 
-		// Customize title and template
+		// Customize template and title
+		add_action('template_redirect', array($this, 'add_template'), 999);
 		add_filter('wp_title', array($this, 'set_title'), 20, 3);
-		add_action('template_redirect', array($this, 'add_template'));
 	}
 
 	private function detect_query() {
@@ -74,23 +74,25 @@ class cfTaxonomies {
 	public function multiple_match($where) {
 		global $wpdb;
 
-		$nr = count($this->matches);
-
 		// Build CASE clauses
 		foreach ( $this->matches as $key => $value )
-			$clauses .= "WHEN '{$key}' THEN '$value'\n";
+			if ( empty($value) )
+				$clauses[] = $wpdb->prepare("WHEN '%s' THEN meta_value IS NOT NULL", $key);
+			else
+				$clauses[] = $wpdb->prepare("WHEN '%s' THEN meta_value = '%s'", $key, $value);
+		$clauses = implode("\n", $clauses);
 
 		// Get posts that have all key=>value matches
 		$query = $wpdb->prepare("
 			SELECT post_id
 			FROM {$wpdb->postmeta}
-			WHERE meta_value =
+			WHERE
 				CASE meta_key
 					{$clauses}
 				END
 			GROUP BY post_id
-			HAVING COUNT(post_id) = {$nr}
-		");
+			HAVING COUNT(post_id) = %d
+		", count($this->matches));
 
 		// Preserve other clauses
 		return $where . "AND {$wpdb->posts}.ID IN ($query)";

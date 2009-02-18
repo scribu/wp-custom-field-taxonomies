@@ -69,3 +69,4 @@ This is probably because you have **query_posts** somewhere in there. An easy wo
 1. Copy everything from index.php to meta.php
 1. In meta.php, remove any calls to query_posts()
 1. Make additional customizations, if necessary.
+
