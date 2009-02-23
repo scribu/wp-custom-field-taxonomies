@@ -23,11 +23,12 @@ http://yoursite.com/?s=anything&key1=valueA&key2=valueB...
 (posts that match any regular WordPress query AND match each key=value pair)
 
 = Use built in template tags =
-* **meta_cloud()** displays all the tags for a selected taxonomy (can also be restricted by author)
-* **get_linked_meta()** works just like get_post_meta() with the difference that the values are links, not text
-* **get_meta_taxonomies()** returns all defined taxonomies as an associative array
-* **get_meta_title()** return the current key and value to be used as the page title
-* **is_meta()** is a conditional tag that indicates if you're on a meta taxonomy page
+* `meta_filter_box()` generates an advanced meta search box
+* `meta_cloud()` displays all the tags for a selected taxonomy (can also be restricted by author)
+* `get_linked_meta()` works just like get_post_meta() with the difference that the values are links, not text
+* `get_meta_taxonomies()` returns all defined taxonomies as an associative array
+* `get_meta_title()` return the current key and value to be used as the page title
+* `is_meta()` is a conditional tag that indicates if you're on a meta taxonomy page
 
 You can find out more about the available template tags by looking in the **template-tags.php** file
 
@@ -49,7 +50,7 @@ You can search and replace through both custom field keys and custom field value
 1. Add the taxonomies in the settings page.
 1. Add template tags to your theme.
 
-= Examples =
+= Example =
 Say you have this meta taxonomy defined:
 
 mood - Mood
@@ -64,7 +65,7 @@ Mood: [happy](http://yoursite.com/?mood=happy)
 
 == Frequently Asked Questions ==
 = Why isn't it working with my theme? =
-This is probably because you have **query_posts** somewhere in there. An easy workaround:
+This is probably because you have `query_posts()` somewhere in there. An easy workaround:
 1. Create a new file in your theme directory and call it meta.php
 1. Copy everything from index.php to meta.php
 1. In meta.php, remove any calls to query_posts()

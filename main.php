@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.8.1
+Version: 0.9
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -31,11 +31,14 @@ class cfTaxonomies {
 // Setup methods
 
 	public function __construct() {
+		// Generate map
 		$this->map = (array) $GLOBALS['CFT_options']->get('map');
+		foreach ( $this->map as $key => $name )
+			if ( empty($name) )
+				$this->map[$key] = ucfirst($key);
 
-		$this->is_meta = $this->detect_query();
-
-		if ( !$this->is_meta )
+		// Detect query
+		if ( ! $this->is_meta = $this->detect_query() )
 			return false;
 
 		// Retrieve appropriate posts
@@ -127,9 +130,6 @@ class cfTaxonomies {
 		foreach ( $this->matches as $key => $value ) {
 			$name = $this->map[$key];
 
-			if ( empty($name) )
-				$name = ucfirst($key);
-
 			$title[] = str_replace(array('%name%', '%value%'), array($name, stripslashes($value)), $format);
 		}
 
@@ -178,6 +178,28 @@ class cfTaxonomies {
 			echo $return;
 	}
 
+	public function filter_box() {
+		add_action('wp_footer', array($this, 'filter_box_scripts'));
+
+		// Generate select
+		$select = '<option />';
+		foreach ( $this->map as $key => $name )
+			$select .= sprintf('<option value="%s">%s</option>', $key, $name);
+		$select = "<select>{$select}</select>\n";
+?>
+<form class="meta-filter-box" method='GET' action="<?php bloginfo('url'); ?>">
+<fieldset>
+	<table class="meta-filters">
+	</table>
+	<div class="select-meta-filters">
+		Add filter <?php echo $select; ?>
+	</div>
+	<input name="action" type="submit" value="Go" />
+  </fieldset>
+</form>
+<?php
+	}
+
 // Helper methods
 
 	private function is_defined($key) {
@@ -223,6 +245,32 @@ class cfTaxonomies {
 		}
 
 		return $url;
+	}
+
+	public function filter_box_scripts() {
+		global $wp_scripts;
+
+		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
+
+		if ( ! @in_array('jquery', $wp_scripts->done) )
+			$scripts[] = sprintf($scriptf, get_option('siteurl') . "/wp-includes/js/jquery/jquery.js");
+
+		$scripts[] = sprintf($scriptf, $this->get_plugin_url() . '/inc/filter-box.js');
+?>
+<style type="text/css">
+.meta-filters label {display:block}
+.select-meta-filters {float:right}
+</style>
+<?php
+		echo implode("\n", $scripts);
+	}
+
+	private function get_plugin_url() {
+		// < WP 2.6
+		if ( !function_exists('plugins_url') )
+			return get_option('siteurl') . '/wp-content/plugins/' . plugin_basename(dirname(__FILE__));
+
+		return plugins_url(plugin_basename(dirname(__FILE__)));
 	}
 }
 
