@@ -178,13 +178,14 @@ class cfTaxonomies {
 			echo $return;
 	}
 
-	public function filter_box() {
+	public function filter_box($exclude = array() ) {
 		add_action('wp_footer', array($this, 'filter_box_scripts'));
 
 		// Generate select
 		$select = '<option />';
 		foreach ( $this->map as $key => $name )
-			$select .= sprintf('<option value="%s">%s</option>', $key, $name);
+			if ( !in_array($key, $exclude) )
+				$select .= sprintf('<option value="%s">%s</option>', $key, $name);
 		$select = "<select>{$select}</select>\n";
 ?>
 <form class="meta-filter-box" method='GET' action="<?php bloginfo('url'); ?>">
