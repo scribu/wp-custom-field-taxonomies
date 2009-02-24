@@ -34,8 +34,7 @@ You can find out more about the available template tags by looking in the **temp
 
 = Use the new theme template =
 If you want post sorted by metadata to be displayed differently you can:
-Go to your theme directory and create a new file called meta.php.
-Edit it like any other theme file to suit your needs.
+Copy meta.php from the plugin directory to your current theme directory and blend it with your theme.
 
 = Easily choose the keys you will use =
 In the settings page you can select which custom fields to register as meta taxonomies.
