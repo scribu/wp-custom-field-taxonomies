@@ -110,22 +110,27 @@ class settingsCFT extends scbOptionsPage_07 {
 		echo $this->page_footer();
 	}
 
-	// Custom form handler
+	// Main form handler
 	protected function form_handler() {
+		if ( empty($_POST) )
+			return;
 
+		check_admin_referer($this->nonce);
+
+		// Replace keys or values
 		foreach ( array('value', 'key') as $field )
 			if ( isset($_POST["{$field}_action"]) ) {
-				check_admin_referer($this->nonce);
 				$this->do_replace($field, $_POST["{$field}_search"], $_POST["{$field}_replace"]);
 				return;
 			}
 
-		if ( 'Save Changes' != $_POST['action'] )
-			return false;
-
-		check_admin_referer($this->nonce);
-
+		// Manage taxonomies
 		if ( !empty($_POST['key']) )
+			$this->update_taxonomies();
+	}
+
+	// Form handler helper
+	private function update_taxonomies() {
 		foreach ( $_POST['key'] as $i => $key ) {
 			$key = sanitize_title_with_dashes($key);
 			if ( !empty($key) )
@@ -134,10 +139,10 @@ class settingsCFT extends scbOptionsPage_07 {
 
 		$this->options->update(array('map' => $new_map));
 
-		echo '<div class="updated fade"><p>Settings <strong>saved</strong>.</p></div>';
+		echo "<div class='updated fade'><p>Settings <strong>saved</strong>.</p></div>\n";
 	}
 
-	// Helper for form handler
+	// Form handler helper
 	private function do_replace($field, $search, $replace) {
 		global $wpdb;
 
@@ -145,7 +150,7 @@ class settingsCFT extends scbOptionsPage_07 {
 
 		$count = $wpdb->update($wpdb->postmeta, array($meta_field => $replace), array($meta_field => $search));
 
-		echo "<div class='updated fade'><p>Replaced <strong>{$count}</strong> {$field}s: <em>{$search}</em> &raquo; <em>{$replace}</em>.</p></div>";
+		echo "<div class='updated fade'><p>Replaced <strong>{$count}</strong> {$field}s: <em>{$search}</em> &raquo; <em>{$replace}</em>.</p></div>\n";
 	}
 
 	// AJAX response
