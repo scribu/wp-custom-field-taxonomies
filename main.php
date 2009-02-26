@@ -86,7 +86,6 @@ class cfTaxonomies {
 		$clauses = implode("\n", $clauses);
 
 		// Get posts that have all key=>value matches
-#		$ids = $wpdb->get_col($wpdb->prepare("
 		$ids = $wpdb->prepare("
 			SELECT post_id
 			FROM {$wpdb->postmeta}
@@ -97,15 +96,12 @@ class cfTaxonomies {
 			GROUP BY post_id
 			HAVING COUNT(post_id) = %d
 		", count($this->matches));
-#		", count($this->matches)));
-#		$ids = implode(',', $ids);
 
 		// Ignore other clauses if not displaying multiple posts
 		if ( is_singular() )
 			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
 
 		return $where . " AND {$wpdb->posts}.ID IN ({$ids})";
-#		return $where;
 	}
 
 	public function add_template() {
@@ -300,9 +296,3 @@ function cft_init() {
 
 cft_init();
 
-add_action('wp_footer', 'cft_debug');
-function cft_debug() {
-  echo '<!--';
-  print_r($GLOBALS['wp_query']->request);
-  echo '-->';
-}
