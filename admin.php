@@ -52,12 +52,18 @@ class settingsCFT extends scbOptionsPage_07 {
 		<td><input class="widefat" name="%1$s_search" value="" type="text" /></td>
 		<td>with</td>
 		<td><input class="widefat" name="%1$s_replace" value="" type="text" /></td>
-		<td><input class="button-primary" name="%1$s_action" value="Go" type="submit" /></td>
+		<td><input class="button" name="%1$s_action" value="Go" type="submit" /></td>
 	</tr>
 ', $field);
 	echo $this->form_wrap($output);
 ?>
 </table>
+
+<h3>Remove duplicates</h3>
+<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem. Please <strong>backup</strong> your database first.</p>
+<?php
+	echo $this->form_wrap($this->submit_button('Remove duplicates'));
+?>
 </div>
 
 <?php
@@ -110,7 +116,7 @@ class settingsCFT extends scbOptionsPage_07 {
 		echo $this->page_footer();
 	}
 
-	// Main form handler
+	// Custom form handler
 	protected function form_handler() {
 		if ( empty($_POST) )
 			return;
@@ -119,17 +125,18 @@ class settingsCFT extends scbOptionsPage_07 {
 
 		// Replace keys or values
 		foreach ( array('value', 'key') as $field )
-			if ( isset($_POST["{$field}_action"]) ) {
-				$this->do_replace($field, $_POST["{$field}_search"], $_POST["{$field}_replace"]);
-				return;
-			}
+			if ( isset($_POST["{$field}_action"]) )
+				return $this->do_replace($field, $_POST["{$field}_search"], $_POST["{$field}_replace"]);
 
 		// Manage taxonomies
 		if ( !empty($_POST['key']) )
-			$this->update_taxonomies();
+			return $this->update_taxonomies();
+
+		// Remove duplicates
+		if ( 'Remove duplicates' == $_POST['action'] )
+			return $this->remove_duplicates();
 	}
 
-	// Form handler helper
 	private function update_taxonomies() {
 		foreach ( $_POST['key'] as $i => $key ) {
 			$key = sanitize_title_with_dashes($key);
@@ -142,7 +149,6 @@ class settingsCFT extends scbOptionsPage_07 {
 		echo "<div class='updated fade'><p>Settings <strong>saved</strong>.</p></div>\n";
 	}
 
-	// Form handler helper
 	private function do_replace($field, $search, $replace) {
 		global $wpdb;
 
@@ -151,6 +157,24 @@ class settingsCFT extends scbOptionsPage_07 {
 		$count = $wpdb->update($wpdb->postmeta, array($meta_field => $replace), array($meta_field => $search));
 
 		echo "<div class='updated fade'><p>Replaced <strong>{$count}</strong> {$field}s: <em>{$search}</em> &raquo; <em>{$replace}</em>.</p></div>\n";
+	}
+
+	private function remove_duplicates() {
+		global $wpdb;
+		$ids = $wpdb->get_col("
+			SELECT meta_id
+			FROM {$wpdb->postmeta}
+			GROUP BY post_id, meta_key, meta_value
+			HAVING COUNT(meta_value) > 1
+		");
+		$ids = implode(',', $ids);
+
+		$deleted = $wpdb->query("
+			DELETE FROM {$wpdb->postmeta}
+			WHERE meta_id IN({$ids})
+		");
+
+		echo "<div class='updated fade'><p>Removed <strong>{$deleted}</strong> duplicates.</p></div>\n";
 	}
 
 	// AJAX response

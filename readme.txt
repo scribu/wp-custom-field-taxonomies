@@ -42,6 +42,9 @@ In the settings page you can select which custom fields to register as meta taxo
 = Manage custom fields =
 You can search and replace through both custom field keys and custom field values, from the same settings page.
 
+= Remove duplicate custom fields =
+You can remove duplicate custom field pairs (key = value) in posts with the click of a button.
+
 == Installation ==
 
 1. Unzip the archive and put the folder into your plugins folder (/wp-content/plugins/).
