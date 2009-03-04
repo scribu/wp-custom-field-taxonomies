@@ -24,8 +24,8 @@ class settingsCFT extends scbOptionsPage_07 {
 	}
 
 	public function page_head() {
-		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '0.8');
-		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '0.8');
+		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '1.0');
+		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.0');
 	}
 
 	public function page_content() {
@@ -138,10 +138,15 @@ class settingsCFT extends scbOptionsPage_07 {
 	}
 
 	private function update_taxonomies() {
+		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
+
 		foreach ( $_POST['key'] as $i => $key ) {
 			$key = sanitize_title_with_dashes($key);
-			if ( !empty($key) )
-				$new_map[$key] = trim($_POST['title'][$i]);
+
+			if ( empty($key) || in_array($key, $restricted_keys) )
+				continue;
+
+			$new_map[$key] = trim($_POST['title'][$i]);
 		}
 
 		$this->options->update(array('map' => $new_map));
@@ -181,8 +186,8 @@ class settingsCFT extends scbOptionsPage_07 {
 	public function ajax_meta_search() {
 		global $wpdb;
 
-		$hint = trim($_GET['q']);
-		$field = 'meta_' . trim($_GET['field']);
+		$hint = $wpdb->escape(trim($_GET['q']));
+		$field = $wpdb->escape('meta_' . trim($_GET['field']));
 
 		$values = $wpdb->get_col("
 			SELECT DISTINCT $field
@@ -192,7 +197,7 @@ class settingsCFT extends scbOptionsPage_07 {
 		");
 
 		echo join($values, "\n");
-		die();
+		die;
 	}
 }
 

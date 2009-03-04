@@ -59,17 +59,15 @@ mood - Mood
 
 If you want to display linked values from that field for each post, add this inside The Loop:
 
-`<p>Mood: <?php echo get_linked_meta($post->ID, 'yourfield') ?></p>`
+`<p>Mood: <?php echo get_linked_meta(get_the_ID(), 'yourfield') ?></p>`
 
 This will output:
 
-Mood: [happy](http://yoursite.com/?mood=happy)
+Mood: [happy](http://example.com/?mood=happy)
 
 == Frequently Asked Questions ==
 = Why isn't it working with my theme? =
 This is probably because you have `query_posts()` somewhere in there. An easy workaround:
-1. Create a new file in your theme directory and call it meta.php
-1. Copy everything from index.php to meta.php
-1. In meta.php, remove any calls to query_posts()
+1. Copy meta.php from the plugin directory into your theme directory
 1. Make additional customizations, if necessary.
 

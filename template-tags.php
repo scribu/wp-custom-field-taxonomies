@@ -11,7 +11,11 @@ function is_meta() {
 	return $cfTaxonomies->is_meta;
 }
 
-// Display the meta title. You can choose the format.
+/**
+ * Display the meta title. You can choose the format.
+ * $format: how to arrange meta name and meta value 
+ * $between: what to put between multiple name => value pairs
+ */
 function get_meta_title($format = '%name%: %value%', $between = ' and ') {
 	global $cfTaxonomies;
 
@@ -19,8 +23,8 @@ function get_meta_title($format = '%name%: %value%', $between = ' and ') {
 }
 
 /**
- * Similar to get_post_meta (values are links)
- * $id: usually $post->ID
+ * Similar to get_post_meta, except that returned values are links
+ * $id: use get_the_ID();
  * $key: one of the defined taxonomy keys
  * $glue: what to put between values (optional)
  */
@@ -32,24 +36,16 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 
 /**
  * Display a tag cloud using meta values as tags
- * $key: one of the defined taxonomy keys
- * $auth_id: restrict cloud tags to a single user (optional)
- * $args: see wp_tag_cloud() for available args (optional)
+ * $metaArgs
+ *	'key' => one of the defined taxonomy keys
+ *	'auth_id' => restrict cloud tags to a single user (optional)
+ *	'relative' => make tag links relative (default: false)
+ * $cloudArgs: see wp_tag_cloud() for available args (optional)
  */
-function meta_cloud($key, $auth_id = '', $args = '') {
+function meta_cloud($metaArgs, $cloudArgs = '') {
 	global $cfTaxonomies;
 
-	return $cfTaxonomies->meta_cloud($key, $auth_id, $args);
-}
-
-/**
- * Get all defined taxonomies as an associative array
- * $key => $value
- */
-function get_meta_taxonomies() {
-	global $cfTaxonomies;
-
-	return $cfTaxonomies->map;
+	return $cfTaxonomies->meta_cloud($metaArgs, $cloudArgs);
 }
 
 /**
@@ -61,6 +57,16 @@ function meta_filter_box($exclude = array()) {
 	global $cfTaxonomies;
 
 	return $cfTaxonomies->filter_box($exclude);
+}
+
+/**
+ * Get all defined taxonomies as an associative array
+ * $key => $value
+ */
+function get_meta_taxonomies() {
+	global $cfTaxonomies;
+
+	return $cfTaxonomies->map;
 }
 
 /**

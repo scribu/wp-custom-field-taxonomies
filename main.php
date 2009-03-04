@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 0.9.3
+Version: 1.0
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -23,6 +23,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+define('CFT_AJAX_KEY', 'ajax-meta-search');
+define('CFT_AJAX_URL', get_bloginfo('url') . '?' . CFT_AJAX_KEY . '=');
+define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url = '" . CFT_AJAX_URL . "';</script>");
+
 class cfTaxonomies {
 	public $map;
 	public $matches;
@@ -31,6 +35,9 @@ class cfTaxonomies {
 // Setup methods
 
 	public function __construct() {
+		// Set ajax response
+		add_action('init', array($this, 'ajax_meta_search'));
+
 		// Generate map
 		$this->map = (array) $GLOBALS['CFT_options']->get('map');
 		foreach ( $this->map as $key => $name )
@@ -42,10 +49,7 @@ class cfTaxonomies {
 			return false;
 
 		// Retrieve appropriate posts
-		if ( 1 == count($this->matches) )
-			add_filter('request', array($this, 'single_match'));
-		else
-			add_filter('posts_where', array($this, 'multiple_match'));
+		add_filter('posts_where', array($this, 'multiple_match'));
 
 		// Customize template and title
 		add_action('template_redirect', array($this, 'add_template'), 999);
@@ -65,17 +69,22 @@ class cfTaxonomies {
 		return !empty($this->matches);
 	}
 
-	// Use built in request args
-	public function single_match($request) {
-		$request['meta_key'] = key($this->matches);
-		$request['meta_value'] = reset($this->matches);
-
-		return $request;
-	}
-
 	// Find posts manually
 	public function multiple_match($where) {
 		global $wpdb;
+
+		if ( is_front_page() ) {
+			// Get posts instead of static page
+			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
+		} elseif ( is_singular() ) {
+			// Redirect to non-relative URL
+			$location = get_bloginfo('url');
+			foreach ( $this->matches as $key => $value )
+				$location = add_query_arg($key, urlencode($value), $location);
+
+			wp_redirect($location, 301);
+			die;
+		}
 
 		// Build CASE clauses
 		foreach ( $this->matches as $key => $value )
@@ -97,34 +106,29 @@ class cfTaxonomies {
 			HAVING COUNT(post_id) = %d
 		", count($this->matches));
 
-		// Ignore other clauses if not displaying multiple posts
-		if ( is_singular() )
-			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
-
 		return $where . " AND {$wpdb->posts}.ID IN ({$ids})";
 	}
 
 	public function add_template() {
 		$template = TEMPLATEPATH . "/meta.php";
+
 		if ( file_exists($template) ) {
 			include($template);
-			die();
+			die;
 		}
-
-		return;
 	}
 
 	public function set_title($title, $sep, $seplocation = '') {
-		if ( empty($title) )
-			if ( 'right' == $seplocation )
-				return $this->get_meta_title() . " $sep ";
-			else
-				return " $sep " . $this->get_meta_title();
-		else
-			if ( 'right' == $seplocation )
-				return $this->get_meta_title() . " $sep " . $title;
-			else
-				return $title . " $sep " . $this->get_meta_title();
+		$newtitle[] = $this->get_meta_title();
+		$newtitle[] = " $sep ";
+
+		if ( ! empty($title) )
+			$newtitle[] = $title;
+
+		if ( 'right' != $seplocation )
+			$newtitle = array_reverse($newtitle);
+
+		return implode('', $newtitle);
 	}
 
 // Template tags
@@ -157,28 +161,37 @@ class cfTaxonomies {
 			return reset($values);
 	}
 
-	public function meta_cloud($key, $auth_id = '', $args = '') {
+	public function meta_cloud($metaArgs, $cloudArgs = '') {
+		extract(wp_parse_args($metaArgs, array(
+			'key' => NULL,
+			'auth_id' => NULL,
+			'relative' => false
+		)));
+
 		if ( ! $this->is_defined($key) )
 			return false;
 
-		$tags = $this->get_meta_values($key, $auth_id);
+		$cloudArgs = wp_parse_args($cloudArgs, array(
+			'smallest' => 8, 'largest' => 22, 'unit' => 'pt', 'number' => 45,
+			'format' => 'flat', 'orderby' => 'name', 'order' => 'ASC',
+			'exclude' => '', 'include' => '', 'link' => 'view'
+		));
+
+		$tags = $this->get_meta_values($key, $auth_id, $cloudArgs['number']);
 
 		if ( empty($tags) )
 			return false;
 
-		foreach ( $tags as $i => $tag ) {
-			$link = $this->get_meta_url($key, $tag->name);
+		// Add links
+		foreach ( $tags as $i => $tag )
+			$tags[$i]->link = $this->get_meta_url($key, $tag->name, $relative);
 
-			$tags[$i]->link = $link;
-			$tags[$i]->id = $tag->term_id;
-		}
+		$return = wp_generate_tag_cloud($tags, $cloudArgs);
 
-		$return = wp_generate_tag_cloud($tags, $args); // Here's where those top tags get sorted according to $args
-
-		if ( 'array' == $args['format'] )
+		if ( 'array' == $cloudArgs['format'] )
 			return $return;
-		else
-			echo $return;
+
+		echo $return;
 	}
 
 	public function filter_box($exclude = array() ) {
@@ -187,12 +200,12 @@ class cfTaxonomies {
 		// Generate select
 		$select = '<option />';
 		foreach ( $this->map as $key => $name )
-			if ( !in_array($key, $exclude) )
+			if ( ! in_array($key, $exclude) )
 				$select .= sprintf('<option value="%s">%s</option>', $key, $name);
 		$select = "<select>{$select}</select>\n";
 ?>
 <form class="meta-filter-box" method='GET' action="<?php bloginfo('url'); ?>">
-<fieldset>
+  <fieldset>
 	<table class="meta-filters">
 	</table>
 	<div class="select-meta-filters">
@@ -206,67 +219,95 @@ class cfTaxonomies {
 
 // Helper methods
 
-	private function is_defined($key) {
-		if ( ! $r = in_array($key, array_keys($this->map)) )
-			trigger_error("'{$key}' is not defined as a custom taxonomy", E_USER_WARNING);
+	public function filter_box_scripts() {
+		global $wp_scripts;
 
-		return $r;
+		$url = $this->get_plugin_url() . '/inc';
+		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
+
+		// CSS
+		$scripts[] = "<style type='text/css'>@import url('$url/filter-box.css');</style>";
+
+		// Dependencies
+		foreach ( array('jquery', 'suggest') as $name )
+			if ( ! @in_array($name, $wp_scripts->done) )
+				$scripts[] = sprintf($scriptf, get_option('siteurl') . "/wp-includes/js/jquery/$name.js");
+
+		// Box script
+		$scripts[] = CFT_AJAX_URL_JS;
+		$scripts[] = sprintf($scriptf, "$url/filter-box.js");
+
+		echo implode("\n", $scripts);
 	}
 
-	private function get_meta_values($key, $auth_id) {
+	// AJAX response
+	public function ajax_meta_search() {
+		if ( !isset( $_GET[CFT_AJAX_KEY] ) )
+			return;
+
 		global $wpdb;
 
-		if ( !empty($auth_id) )
-			$extra_clause = "AND p.post_author = {$auth_id}";
+		$key = $wpdb->escape(trim($_GET[CFT_AJAX_KEY]));
+		$hint = $wpdb->escape(trim($_GET['q']));
 
-		$values = $wpdb->get_results($wpdb->prepare("
+		if ( ! $this->is_defined($key) )
+			die(-1);
+
+		@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
+
+		foreach ( $this->get_meta_values($key, NULL, 10, $hint) as $value )
+			echo $value->name . "\n";
+
+		die;
+	}
+
+	private function get_meta_values($key, $auth_id = NULL, $limit = NULL, $hint = NULL) {
+		global $wpdb;
+
+		$where = "AND m.meta_key = '$key'";
+
+		if ( isset($hint) )
+			$where .= " AND m.meta_value LIKE ('%{$hint}%')";
+
+		if ( isset($auth_id) )
+			$where .= " AND p.post_author = " . absint($auth_id);
+
+		if ( isset($limit) )
+			$limit_clause = 'LIMIT 0, ' . absint($limit);
+
+		$values = $wpdb->get_results("
 			SELECT m.meta_value AS name, COUNT(m.meta_value) AS count
 			FROM {$wpdb->postmeta} m
 			JOIN {$wpdb->posts} p ON m.post_id = p.ID
 			WHERE p.post_status = 'publish'
-			AND m.meta_key = '{$key}'
-			{$extra_clause}
+			{$where}
 			GROUP BY m.meta_value
-			ORDER BY COUNT(m.meta_value)
-		"));
+			ORDER BY COUNT(m.meta_value) DESC
+			{$limit_clause}
+		");
 
 		return $values;
 	}
 
 	private function get_meta_url($key, $value, $relative = false) {
-		global $wp_rewrite;
+		if ( is_singular() )
+			$relative = false;
 
-		$match = $key . '=' . urlencode($value);
+		if ( $relative )
+			$url = $_SERVER['PROTOCOL'] . $_SERVER['HOST'] . $_SERVER['REQUEST_URI'];
+		else
+			$url = get_bloginfo('url');
 
-		if ( $relative ) {
-			$url = '?';
-			if ( $_SERVER['QUERY_STRING'] )
-				$url .= $_SERVER['QUERY_STRING'] . '&';
-			$url .= $match;
-		} else {
-			$front = $wp_rewrite->using_permalinks ? rtrim($wp_rewrite->front, '/') : rtrim(get_bloginfo('url'), '/');
-			$url = $front . '/?' . $match;
-		}
+		$url = add_query_arg($key, urlencode($value), $url);
 
 		return $url;
 	}
 
-	public function filter_box_scripts() {
-		global $wp_scripts;
+	private function is_defined($key) {
+		if ( ! $r = in_array($key, array_keys($this->map)) )
+			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
 
-		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
-
-		if ( ! @in_array('jquery', $wp_scripts->done) )
-			$scripts[] = sprintf($scriptf, get_option('siteurl') . "/wp-includes/js/jquery/jquery.js");
-
-		$scripts[] = sprintf($scriptf, $this->get_plugin_url() . '/inc/filter-box.js');
-?>
-<style type="text/css">
-.meta-filters label {display:block}
-.select-meta-filters {float:right}
-</style>
-<?php
-		echo implode("\n", $scripts);
+		return $r;
 	}
 
 	private function get_plugin_url() {
@@ -295,4 +336,3 @@ function cft_init() {
 }
 
 cft_init();
-

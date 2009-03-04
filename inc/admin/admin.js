@@ -9,15 +9,25 @@ jQuery(function($) {
 		});
 	}
 
+	bind_suggest = function(element, field) {
+		$(element).suggest('admin-ajax.php?action=meta-search&field=' + field, {delay: 200, minchars: 2});
+	}
+
 	init_suggest = function() {
 		$('#cf-taxonomies [name^=key]').each(function() {
-			$(this).suggest('admin-ajax.php?action=meta-search&field=key', {delay: 200, minchars: 2});
+			bind_suggest(this, 'key');
 		});
+	}
+
+	sr_suggest = function() {
+		bind_suggest('[name=key_search]', 'key');
+		bind_suggest('[name=value_search]', 'value');
 	}
 
 $(document).ready(function() {
 	init_delete();
 	init_suggest();
+	sr_suggest();
 
 	$('#add').click(function() {
 		row = 
@@ -31,9 +41,5 @@ $(document).ready(function() {
 		init_delete();	// reinitialize
 		init_suggest();	// reinitialize
 	});
-
-	// Search & replace suggest
-	$('[name=value_search]').suggest('admin-ajax.php?action=meta-search&field=value', {delay: 200, minchars: 2});
-	$('[name=key_search]').suggest('admin-ajax.php?action=meta-search&field=key', {delay: 200, minchars: 2});
 });
 });

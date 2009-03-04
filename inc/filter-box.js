@@ -18,6 +18,14 @@ jQuery(function($) {
 			+ '</tr>';
 		$(this).parents('.meta-filter-box').find('.meta-filters').append(row);
 
+		// Bind autosuggest
+		$(this).parents('.meta-filter-box').find('[name=' + selected.val() + ']')
+			.suggest(window.cft_suggest_url + selected.val(), {
+				resultsClass : 'cft_results',
+				selectClass : 'cft_over',
+				matchClass : 'cft_match'
+			});
+
 		// Handle filter remove button
 		$(this).parents('.meta-filter-box').find('.filter-remove').click(function() {
 			// Remove row
