@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.0
+Version: 1.0.1
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -73,17 +73,19 @@ class cfTaxonomies {
 	public function multiple_match($where) {
 		global $wpdb;
 
-		if ( is_front_page() ) {
-			// Get posts instead of static page
-			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
-		} elseif ( is_singular() ) {
-			// Redirect to non-relative URL
-			$location = get_bloginfo('url');
+		if ( is_singular() ) {
+			// Get canonical location (shouldn't be relative)
+			$location = trailingslashit(get_bloginfo('url'));
 			foreach ( $this->matches as $key => $value )
 				$location = add_query_arg($key, urlencode($value), $location);
 
-			wp_redirect($location, 301);
-			die;
+			if ( $this->get_current_url() != $location ) {
+				wp_redirect($location, 301);
+				die;
+			}
+
+			// Get posts instead of static page
+			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
 		}
 
 		// Build CASE clauses
@@ -294,9 +296,9 @@ class cfTaxonomies {
 			$relative = false;
 
 		if ( $relative )
-			$url = $_SERVER['PROTOCOL'] . $_SERVER['HOST'] . $_SERVER['REQUEST_URI'];
+			$url = $this->get_current_url();
 		else
-			$url = get_bloginfo('url');
+			$url = trailingslashit(get_bloginfo('url'));
 
 		$url = add_query_arg($key, urlencode($value), $url);
 
@@ -308,6 +310,17 @@ class cfTaxonomies {
 			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
 
 		return $r;
+	}
+
+	private function get_current_url() {
+		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
+
+		if ( $_SERVER["SERVER_PORT"] != "80" )
+			$pageURL .= $_SERVER["SERVER_NAME"]. ":" .$_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
+		else
+			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+
+		return $pageURL;
 	}
 
 	private function get_plugin_url() {
@@ -336,3 +349,4 @@ function cft_init() {
 }
 
 cft_init();
+
