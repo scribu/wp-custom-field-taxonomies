@@ -6,9 +6,7 @@
 
 // Check if the current page is a meta page.
 function is_meta() {
-	global $cfTaxonomies;
-
-	return $cfTaxonomies->is_meta;
+	return $GLOBALS['CFT_core']->is_meta;
 }
 
 /**
@@ -17,9 +15,7 @@ function is_meta() {
  * $between: what to put between multiple name => value pairs
  */
 function get_meta_title($format = '%name%: %value%', $between = ' and ') {
-	global $cfTaxonomies;
-
-	return $cfTaxonomies->get_meta_title($format, $between);
+	return $GLOBALS['CFT_core']->get_meta_title($format, $between);
 }
 
 /**
@@ -29,9 +25,7 @@ function get_meta_title($format = '%name%: %value%', $between = ' and ') {
  * $glue: what to put between values (optional)
  */
 function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
-	global $cfTaxonomies;
-
-	return $cfTaxonomies->get_linked_meta($id, $key, $glue, $relative);
+	return $GLOBALS['CFT_core']->get_linked_meta($id, $key, $glue, $relative);
 }
 
 /**
@@ -43,9 +37,7 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
  * $cloudArgs: see wp_tag_cloud() for available args (optional)
  */
 function meta_cloud($metaArgs, $cloudArgs = '') {
-	global $cfTaxonomies;
-
-	return $cfTaxonomies->meta_cloud($metaArgs, $cloudArgs);
+	return $GLOBALS['CFT_core']->meta_cloud($metaArgs, $cloudArgs);
 }
 
 /**
@@ -54,9 +46,14 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
  * $exclude: an array of meta keys to be excluded
  */
 function meta_filter_box($exclude = array()) {
-	global $cfTaxonomies;
+	return $GLOBALS['CFT_core']->filter_box($exclude);
+}
 
-	return $cfTaxonomies->filter_box($exclude);
+/** Display a percent relevance for each post
+ * Should be used inside The Loop
+ */
+function meta_relevance() {
+	return $GLOBALS['CFT_query']->the_relevance();
 }
 
 /**
@@ -64,9 +61,7 @@ function meta_filter_box($exclude = array()) {
  * $key => $value
  */
 function get_meta_taxonomies() {
-	global $cfTaxonomies;
-
-	return $cfTaxonomies->map;
+	return $GLOBALS['CFT_core']->map;
 }
 
 /**

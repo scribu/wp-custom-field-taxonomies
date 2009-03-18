@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.0.1
+Version: 1.1
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -27,33 +27,48 @@ define('CFT_AJAX_KEY', 'ajax-meta-search');
 define('CFT_AJAX_URL', get_bloginfo('url') . '?' . CFT_AJAX_KEY . '=');
 define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url = '" . CFT_AJAX_URL . "';</script>");
 
-class cfTaxonomies {
+class CFT_core {
 	public $map;
 	public $matches;
+	public $rankings;
 	public $is_meta;
 
-// Setup methods
+// Core methods
 
 	public function __construct() {
-		// Set ajax response
-		add_action('init', array($this, 'ajax_meta_search'));
+		// Load options
+		if ( ! class_exists('scbOptions_06') )
+			require_once(dirname(__FILE__) . '/inc/scbOptions.php');
 
-		// Generate map
-		$this->map = (array) $GLOBALS['CFT_options']->get('map');
-		foreach ( $this->map as $key => $name )
-			if ( empty($name) )
-				$this->map[$key] = ucfirst($key);
+		$this->options = new scbOptions_06('cf_taxonomies');
+
+		// Generate map with the latest settings
+		$this->make_map();
 
 		// Detect query
 		if ( ! $this->is_meta = $this->detect_query() )
 			return false;
 
-		// Retrieve appropriate posts
-		add_filter('posts_where', array($this, 'multiple_match'));
+		require_once(dirname(__FILE__) . '/query.php');
+		$GLOBALS['CFT_query'] = new CFT_query($this->matches, $this->options->get('relevance'));
+
+		// Set ajax response
+		add_action('init', array($this, 'ajax_meta_search'));
 
 		// Customize template and title
 		add_action('template_redirect', array($this, 'add_template'), 999);
 		add_filter('wp_title', array($this, 'set_title'), 20, 3);
+	}
+
+	public function make_map() {
+		$this->map = (array) $this->options->get('map');
+
+		foreach ( $this->map as $key => $name )
+			if ( empty($name) )
+				$this->map[$key] = ucfirst($key);
+
+		// for convenience,
+		return $this->map;
 	}
 
 	private function detect_query() {
@@ -67,48 +82,6 @@ class cfTaxonomies {
 				$this->matches[$key] = wp_specialchars($value);
 
 		return !empty($this->matches);
-	}
-
-	// Find posts manually
-	public function multiple_match($where) {
-		global $wpdb;
-
-		if ( is_singular() ) {
-			// Get canonical location (shouldn't be relative)
-			$location = trailingslashit(get_bloginfo('url'));
-			foreach ( $this->matches as $key => $value )
-				$location = add_query_arg($key, urlencode($value), $location);
-
-			if ( $this->get_current_url() != $location ) {
-				wp_redirect($location, 301);
-				die;
-			}
-
-			// Get posts instead of static page
-			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
-		}
-
-		// Build CASE clauses
-		foreach ( $this->matches as $key => $value )
-			if ( empty($value) )
-				$clauses[] = $wpdb->prepare("WHEN '%s' THEN meta_value IS NOT NULL", $key);
-			else
-				$clauses[] = $wpdb->prepare("WHEN '%s' THEN meta_value = '%s'", $key, $value);
-		$clauses = implode("\n", $clauses);
-
-		// Get posts that have all key=>value matches
-		$ids = $wpdb->prepare("
-			SELECT post_id
-			FROM {$wpdb->postmeta}
-			WHERE
-				CASE meta_key
-					{$clauses}
-				END
-			GROUP BY post_id
-			HAVING COUNT(post_id) = %d
-		", count($this->matches));
-
-		return $where . " AND {$wpdb->posts}.ID IN ({$ids})";
 	}
 
 	public function add_template() {
@@ -242,6 +215,13 @@ class cfTaxonomies {
 		echo implode("\n", $scripts);
 	}
 
+	private function is_defined($key) {
+		if ( ! $r = in_array($key, array_keys($this->map)) )
+			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
+
+		return $r;
+	}
+
 	// AJAX response
 	public function ajax_meta_search() {
 		if ( !isset( $_GET[CFT_AJAX_KEY] ) )
@@ -288,7 +268,7 @@ class cfTaxonomies {
 			{$limit_clause}
 		");
 
-		return $values;
+		return apply_filters('cft_get_values', $values, $key, $auth_id, $limit, $hint);
 	}
 
 	private function get_meta_url($key, $value, $relative = false) {
@@ -302,14 +282,21 @@ class cfTaxonomies {
 
 		$url = add_query_arg($key, urlencode($value), $url);
 
-		return $url;
+		return apply_filters('cft_get_url', $url, $key, $value, $relative);
 	}
 
-	private function is_defined($key) {
-		if ( ! $r = in_array($key, array_keys($this->map)) )
-			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
+	public function make_canonical() {
+		// Get canonical location (shouldn't be relative for single posts)
+		$location = trailingslashit(get_bloginfo('url'));
 
-		return $r;
+		foreach ( $this->matches as $key => $value )
+			$location = add_query_arg($key, urlencode($value), $location);
+
+		if ( $this->get_current_url() == $location )
+			return; // all good
+
+		wp_redirect($location, 301);
+		die;
 	}
 
 	private function get_current_url() {
@@ -334,19 +321,16 @@ class cfTaxonomies {
 
 // Init
 function cft_init() {
-	if ( !class_exists('scbOptions_05') )
-		require_once(dirname(__FILE__) . '/inc/scbOptions.php');
-
-	$GLOBALS['CFT_options'] = new scbOptions_05('cf_taxonomies');
-	$GLOBALS['cfTaxonomies'] = new cfTaxonomies();
+	$GLOBALS['CFT_core'] = new CFT_core();
+	include_once(dirname(__FILE__) . '/template-tags.php');
 
 	if ( is_admin() ) {
 		include_once(dirname(__FILE__) . '/admin.php');
 		new settingsCFT(__FILE__);
 	}
-
-	include_once(dirname(__FILE__) . '/template-tags.php');
 }
 
 cft_init();
 
+// DEBUG
+add_action('wp_footer', create_function('', 'print_r($GLOBALS["wp_query"]->request);'));

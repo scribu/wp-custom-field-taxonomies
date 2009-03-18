@@ -20,12 +20,14 @@ http://yoursite.com/?foo=bar
 and as complex as
 
 http://yoursite.com/?s=anything&key1=valueA&key2=valueB...
-(posts that match any regular WordPress query AND match each key=value pair)
+(posts that match any regular WordPress query AND match some or all key=value pairs)
 
 = Use built in template tags =
 * `meta_filter_box()` generates an advanced meta search box
 * `meta_cloud()` displays all the tags for a selected taxonomy (can also be restricted by author)
 * `get_linked_meta()` works just like get_post_meta() with the difference that the values are links, not text
+* `all_meta_info()` displays all the meta values for each post
+* `meta_relevance()` displays a percentage that indicates how many key=value pair matches a post has
 * `get_meta_taxonomies()` returns all defined taxonomies as an associative array
 * `get_meta_title()` return the current key and value to be used as the page title
 * `is_meta()` is a conditional tag that indicates if you're on a meta taxonomy page
@@ -34,13 +36,13 @@ You can find out more about the available template tags by looking in the **temp
 
 = Use the new theme template =
 If you want post sorted by metadata to be displayed differently you can:
-Copy meta.php from the plugin directory to your current theme directory and blend it with your theme.
+Copy meta.php from the plugin directory to your current theme directory. You can leave it as is or integrate it into your theme.
 
 = Easily choose the keys you will use =
 In the settings page you can select which custom fields to register as meta taxonomies.
 
 = Manage custom fields =
-You can search and replace through both custom field keys and custom field values, from the same settings page.
+You can search and replace through both custom field keys and custom field values from the same settings page.
 
 = Remove duplicate custom fields =
 You can remove duplicate custom field pairs (key = value) in posts with the click of a button.
