@@ -53,6 +53,9 @@ function meta_filter_box($exclude = array()) {
  * Should be used inside The Loop
  */
 function meta_relevance() {
+	if ( !isset($GLOBALS['CFT_query']) )
+		return;
+
 	return $GLOBALS['CFT_query']->the_relevance();
 }
 
