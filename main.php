@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.1.0.2
+Version: 1.1.0.3
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -333,4 +333,5 @@ function cft_init() {
 cft_init();
 
 // DEBUG
-# add_action('wp_footer', create_function('', 'print_r($GLOBALS["wp_query"]->request);'));
+if ( CFT_DEBUG === true )
+	add_action('wp_footer', create_function('', 'print_r($GLOBALS["wp_query"]->request);'));
