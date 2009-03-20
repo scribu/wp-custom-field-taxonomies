@@ -1,26 +1,5 @@
 <?php
 
-/*
-SELECT SQL_CALC_FOUND_ROWS wp_posts.*, COUNT(wp_posts.ID) AS meta_rank 
-FROM wp_posts 
-INNER JOIN wp_term_relationships ON (wp_posts.ID = wp_term_relationships.object_id)
-INNER JOIN wp_term_taxonomy ON (wp_term_relationships.term_taxonomy_id = wp_term_taxonomy.term_taxonomy_id) 
-INNER JOIN wp_terms ON (wp_term_taxonomy.term_id = wp_terms.term_id) 
-JOIN wp_postmeta ON (wp_posts.ID = wp_postmeta.post_id)
-WHERE 1=1
-AND wp_term_taxonomy.taxonomy = 'post_tag'
-AND wp_terms.slug IN ('etc')
-AND wp_posts.post_type = 'post'
-AND (wp_posts.post_status = 'publish' OR wp_posts.post_status = 'private')
-AND CASE meta_key
-WHEN 'aparat' THEN meta_value = 'Smena'
-END
-GROUP BY wp_posts.ID
-HAVING COUNT(post_id) > 0
-ORDER BY meta_rank DESC, wp_posts.post_date DESC
-LIMIT 0, 4
-*/
-
 class CFT_query {
 	private $matches;
 	private $relevance;
