@@ -1,5 +1,21 @@
 jQuery(function($) {
-	init_delete = function() {
+	bind_suggest = function(element, field) {
+		$(element).suggest('admin-ajax.php?action=meta-search&field=' + field, {delay: 200, minchars: 2});
+	}
+
+	tax_suggest = function() {
+		$('#cf-taxonomies [name^=key]').each(function() {
+			bind_suggest(this, 'key');
+		});
+	}
+
+	sr_suggest = function() {
+		bind_suggest('[name=key_search]', 'key');
+		bind_suggest('[name=value_search]', 'value');
+		bind_suggest('[name=default_value]', 'value');
+	}
+
+	tax_delete = function() {
 		$('.delete').each(function() {
 			$(this).click(function() {
 				$(this).parents('tr').fadeOut('normal', function() {
@@ -9,24 +25,9 @@ jQuery(function($) {
 		});
 	}
 
-	bind_suggest = function(element, field) {
-		$(element).suggest('admin-ajax.php?action=meta-search&field=' + field, {delay: 200, minchars: 2});
-	}
-
-	init_suggest = function() {
-		$('#cf-taxonomies [name^=key]').each(function() {
-			bind_suggest(this, 'key');
-		});
-	}
-
-	sr_suggest = function() {
-		bind_suggest('[name=key_search]', 'key');
-		bind_suggest('[name=value_search]', 'value');
-	}
-
 $(document).ready(function() {
-	init_delete();
-	init_suggest();
+	tax_suggest();
+	tax_delete();
 	sr_suggest();
 
 	$('#add').click(function() {
@@ -38,8 +39,8 @@ $(document).ready(function() {
 		'</tr>';
 
 		$(this).parents('tr').before(row);
-		init_delete();	// reinitialize
-		init_suggest();	// reinitialize
+		tax_delete();	// reinitialize
+		tax_suggest();	// reinitialize
 	});
 });
 });

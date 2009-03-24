@@ -6,7 +6,7 @@
 
 // Check if the current page is a meta page.
 function is_meta() {
-	return $GLOBALS['CFT_core']->is_meta;
+	return ! empty($GLOBALS['CFT_core']->query_vars);
 }
 
 /**
@@ -88,3 +88,4 @@ function all_meta_info() {
 	if ( $output )
 		echo "<table id='extra-info' cellspacing='0'>\n{$output}</table>\n";
 }
+

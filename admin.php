@@ -1,75 +1,278 @@
 <?php
-if ( !class_exists('scbOptionsPage_07') )
-	require_once(dirname(__FILE__) . '/inc/scbOptionsPage.php');
+if ( !class_exists('scbBoxesPage_07') )
+	require_once(dirname(__FILE__) . '/inc/scbBoxesPage.php');
 
-// Adds the CFI Settings page
-class settingsCFT extends scbOptionsPage_07 {
+// Adds the CFT Settings page
+class settingsCFT extends scbBoxesPage_07 {
 	protected function setup() {
 		$this->options = $GLOBALS['CFT_core']->options;
-
-		$this->defaults = array(
-			'map' => '',
-			'relevance' => false
-		);
+		$this->map = $GLOBALS['CFT_core']->make_map();
 
 		$this->args = array(
 			'page_title' => 'Custom Field Taxonomies',
 			'short_title' => 'CF Taxonomies',
-			'page_slug' => 'cft-settings'
+			'page_slug' => 'cf-taxonomies'
 		);
 
-		$this->nonce = 'cft-settings';
+		$this->boxes = array(
+			array('taxonomies', 'Register Taxonomies', 'normal'),
+			array('settings', 'Settings', 'normal'),
+			array('replace_values', 'Replace Values', 'advanced'),
+			array('replace_keys', 'Replace Keys', 'advanced'),
+			array('add_default', 'Add Default Value', 'advanced'),
+			array('duplicates', 'Remove duplicates', 'advanced'),
+		);
+		
+		$this->defaults = array(
+			'map' => '',
+			'relevance' => true,
+			'rank_by_order' => false
+		);
+
+		// Used by search and replace boxes
+		$this->sr_row = '
+		<tr>
+			<td>Replace %1$s</td>
+			<td><input class="widefat" name="%1$s_search" value="" type="text" /></td>
+			<td>with</td>
+			<td><input class="widefat" name="%1$s_replace" value="" type="text" /></td>
+			<td><input class="button" name="%1$s_action" value="Go" type="submit" /></td>
+		</tr>
+		';
 
 		// Suggest
 		add_action('wp_ajax_meta-search', array($this, 'ajax_meta_search'));
 	}
 
+	public function page_init() {
+		extract($this->args);
+
+		$this->pagehook = add_submenu_page('post-new.php', $short_title, $short_title, 'manage_options', $page_slug, array($this, 'page_content'));
+
+		add_action('admin_print_styles-' . $this->pagehook, array($this, 'page_head'));
+		add_action('load-' . $this->pagehook, array($this, 'boxes_init'));
+	}
+
 	public function page_head() {
-		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '1.0');
-		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.0');
+		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '1.2');
+		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.2');
 	}
 
 	public function page_content() {
-		echo $this->page_header();
+		$this->page_header();
+
+		echo "<div id='cf-main' class='metabox-holder'>\n";
+		echo "\t<div class='postbox-container'>\n";
+		do_meta_boxes($this->pagehook, 'normal', '');
+		echo "\t</div>\n</div>\n";
+
+		echo "<div id='cf-side' class='metabox-holder'>\n";
+		echo "<div class='postbox-container'>\n";
+		do_meta_boxes($this->pagehook, 'advanced', '');
+		echo "\t</div>\n</div>\n";
+
+		$this->page_footer();
+	}
+
+	public function replace_values_handler() {
+		if ( !isset($_POST["value_action"]) )
+			return;
+	
+		global $wpdb;
+
+		$search = $wpdb->escape($_POST["value_search"]);
+		$replace = $wpdb->escape($_POST["value_replace"]);
+		$key = $wpdb->escape($_POST["value_key"]);
+
+		$what = array('meta_value' => $replace);
+		$where = array('meta_value' => $search);
+
+		if ( $key != '*' )
+			$where['meta_key'] = $key;
+
+		$count = (int) $wpdb->update($wpdb->postmeta, $what, $where);
+
+		$message = "Replaced <strong>{$count}</strong> values: <em>{$search}</em> &raquo; <em>{$replace}</em>";
+
+		if ( $key != '*' ) {
+			$message .= " in <em>{$this->map[$key]}</em> taxonomy.</p>";
+		} else
+			$message .= ".";
+
+		$this->admin_msg($message);
+	}
+
+	public function replace_values_box() {
+		$select = $this->select('name=value_key', array_merge(array('*' => '(any)'), $this->map));
+		$form = '';
+		$form[] = "In {$select} taxonomy, ";
+		$form[] = sprintf("<table>{$this->sr_row}</table>\n", 'value');
+		echo $this->form_wrap(implode("\n", $form));
+	}
+
+
+	public function add_default_handler() {
+		if ( !isset($_POST["add_default"]) )
+			return;
+
+		global $wpdb;
+
+		$key = $wpdb->escape($_POST["default_key"]);
+		$value = $wpdb->escape($_POST["default_value"]);
+
+		// Get posts that don't have a custom field $key
+		$ids = $wpdb->get_col("
+			SELECT ID
+			FROM {$wpdb->posts}
+			WHERE post_type = 'post'
+			AND post_status = 'publish'
+			AND ID NOT IN (
+				SELECT post_id
+				FROM {$wpdb->postmeta}
+	  			WHERE meta_key = '{$key}'
+	  			GROUP BY post_id
+			)
+		");
+
+		if ( empty($ids) ) {
+			$this->admin_msg("All posts have values for <em>{$this->map[$key]}</em> taxonomy.");
+			return;
+		}
+
+		// Format values for insert statement
+		foreach ( $ids as $id )
+			$values[] = "($id, '$key', '$value')";
+		$values = implode(',', $values);
+
+		$count = (int) $wpdb->query("INSERT INTO {$wpdb->postmeta}(post_id, meta_key, meta_value) VALUES $values");
+
+		$this->admin_msg("Added {$this->map[$key]}: '{$value}' to <strong>{$count}</strong> posts.");
+	}
+
+	public function add_default_box() {
+		$select = $this->select('name=default_key', $this->map);
+		$form = '';
+		$form[] = "In {$select} taxonomy, add default value:";
+		$form[] = '<input class="widefat" name="default_value" value="" type="text" />';
+		$form[] = '<input class="button" name="add_default" value="Go" type="submit" />';
+
+		echo $this->form_wrap(implode("\n", $form));
+		echo '<p>This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you add a new taxonomy.</p>';
+	}
+
+
+	public function replace_keys_handler() {
+		if ( !isset($_POST["key_action"]) )
+			return;
+	
+		global $wpdb;
+
+		$search = $wpdb->escape($_POST["key_search"]);
+		$replace = $wpdb->escape($_POST["key_replace"]);
+
+		$what = array('meta_key' => $replace);
+		$where = array('meta_key' => $search);
+
+		$count = (int) $wpdb->update($wpdb->postmeta, $what, $where);
+
+		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
+	}
+
+	public function replace_keys_box() {
+		echo $this->form_wrap(sprintf("<table>{$this->sr_row}</table>\n", 'key'));
+	}
+
+
+	public function duplicates_handler() {
+		if ( 'Remove duplicates' != $_POST['action'] )
+			return;
+
+		global $wpdb;
+
+		$ids = $wpdb->get_col("
+			SELECT meta_id
+			FROM {$wpdb->postmeta}
+			GROUP BY post_id, meta_key, meta_value
+			HAVING COUNT(meta_value) > 1
+		");
+		$ids = implode(',', $ids);
+
+		$count = (int) $wpdb->query("
+			DELETE FROM {$wpdb->postmeta}
+			WHERE meta_id IN({$ids})
+		");
+
+		$this->admin_msg("Removed <strong>{$count}</strong> duplicates.");
+	}
+
+	public function duplicates_box() {
+		echo "<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.</p>";
+		echo "<p>Please <strong>backup</strong> your database first.</p>\n";
+		echo $this->form_wrap($this->submit_button('Remove duplicates'));
+	}
+
+
+	public function settings_handler() {
+		if ( 'Save settings' != $_POST['action'] )
+			return;
+
+		$this->options->update_part(array(
+			'relevance' => (bool) $_POST['relevance'],
+			'rank_by_order' => (bool) $_POST['rank_by_order']
+		));
+
+		$this->admin_msg("Settings <strong>saved</strong>.");
+	}
+
+	public function settings_box() {
+		$rows = array(
+			array(
+				'type' => 'checkbox',
+				'names' => 'relevance',
+				'desc' => 'Show posts that don\'t match all key=value pairs (for multiple matches)'
+			),
+			array(
+				'type' => 'checkbox',
+				'names' => 'rank_by_order',
+				'desc' => 'Additionally, consider the order of key=value pairs when ordering posts'
+			)
+		);
+
+		foreach ( $rows as $row )
+			$output .= "<p>" . $this->input($row, $this->options->get() ) . "</p>\n";
+
+		$output .= $this->submit_button('Save settings');
+
+		echo $this->form_wrap($output);
+	}
+
+
+	public function taxonomies_handler() {
+		if ( 'Save taxonomies' != $_POST['action'] )
+			return;
+
+		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
+
+		foreach ( $_POST['key'] as $i => $key ) {
+			$key = sanitize_title_with_dashes($key);
+
+			if ( empty($key) || in_array($key, $restricted_keys) )
+				continue;
+
+			$new_map[$key] = trim($_POST['title'][$i]);
+		}
+
+		$this->options->update_part(array('map' => $new_map));
+		
+		// Rebuild map
+		$this->map = $GLOBALS['CFT_core']->make_map();
+
+		$this->admin_msg("Taxonomies <strong>saved</strong>.");
+	}
+
+	public function taxonomies_box() {
+		ob_start();
 ?>
-<div class="section" id="cf-management">
-	<h3>Replace values</h3>
-	<?php ob_start(); ?>
-	In
-	<select name="value_key">
-		<option value="*" selected="selected">(any)</option>
-		<?php
-	$sandr_row = '
-	<tr>
-		<td>Replace %1$s</td>
-		<td><input class="widefat" name="%1$s_search" value="" type="text" /></td>
-		<td>with</td>
-		<td><input class="widefat" name="%1$s_replace" value="" type="text" /></td>
-		<td><input class="button" name="%1$s_action" value="Go" type="submit" /></td>
-	</tr>
-	';
-
-	foreach ( $GLOBALS['CFT_core']->make_map() as $key => $name )
-		echo "<option value='$key'>$name</option>\n";
-	?>
-	</select> taxonomy, <br />
-	<table>
-	<?php printf($sandr_row, 'value'); ?>
-	</table>
-	<?php echo $this->form_wrap(ob_get_clean()); ?>
-
-	<h3>Replace keys</h3>
-	<table>
-	<?php echo $this->form_wrap(sprintf($sandr_row, 'key')); ?>
-	</table>
-
-	<h3>Remove duplicates</h3>
-	<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem. Please <strong>backup</strong> your database first.</p>
-	<?php echo $this->form_wrap($this->submit_button('Remove duplicates')); ?>
-</div>
-
-	<?php ob_start(); ?>
-	<h3>Register taxonomies</h3>
 	<table class="widefat">
 	  <thead>
 		<tr>
@@ -81,7 +284,6 @@ class settingsCFT extends scbOptionsPage_07 {
 	  <tbody>
 <?php
 	$map = $this->options->get('map');
-
 	if ( !empty($map) )
 		foreach ( $map as $key => $title ) {
 			$rows = array(				
@@ -111,124 +313,9 @@ class settingsCFT extends scbOptionsPage_07 {
 	</table>
 <?php
 		echo $this->submit_button('Save taxonomies');
-		echo "<div id='cf-taxonomies'>\n" . $this->form_wrap(ob_get_clean()) . "</div>\n";
-?>
-	<h3>Settings</h3>
-<?php
-		$rows = array(
-			array(
-				'title' => 'Relevance',
-				'type' => 'checkbox',
-				'names' => 'relevance',
-				'desc' => 'Show posts that don\'t match all key=value pairs<br/>(for multiple matches)'
-			)
-		);
-
-		echo $this->form_table($rows);
-
-		echo $this->page_footer();
+		echo $this->form_wrap(ob_get_clean());
 	}
 
-	// Custom form handler
-	protected function form_handler() {
-		if ( empty($_POST) )
-			return;
-
-		check_admin_referer($this->nonce);
-
-		// Manage taxonomies
-		if ( 'Save taxonomies' == $_POST['action'] )
-			return $this->update_taxonomies();
-
-		// Remove duplicates
-		if ( 'Save Changes' == $_POST['action'] )
-			return $this->update_settings();
-
-		// Remove duplicates
-		if ( 'Remove duplicates' == $_POST['action'] )
-			return $this->remove_duplicates();
-
-		// Replace values
-		if ( isset($_POST["value_action"]) )
-			return $this->replace_value($_POST["value_search"], $_POST["value_replace"], $_POST["value_key"]);
-
-		// Replace keys
-		if ( isset($_POST["key_action"]) )
-			return $this->replace_key($_POST["key_search"], $_POST["key_replace"]);
-	}
-
-	private function update_taxonomies() {
-		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
-
-		foreach ( $_POST['key'] as $i => $key ) {
-			$key = sanitize_title_with_dashes($key);
-
-			if ( empty($key) || in_array($key, $restricted_keys) )
-				continue;
-
-			$new_map[$key] = trim($_POST['title'][$i]);
-		}
-
-		$this->options->update_part(array('map' => $new_map));
-
-		echo "<div class='updated fade'><p>Settings <strong>saved</strong>.</p></div>\n";
-	}
-
-	private function update_settings() {
-		$this->options->update_part(array('relevance' => (bool) $_POST['relevance']));
-
-		echo "<div class='updated fade'><p>Settings <strong>saved</strong>.</p></div>\n";
-	}
-
-	private function remove_duplicates() {
-		global $wpdb;
-		$ids = $wpdb->get_col("
-			SELECT meta_id
-			FROM {$wpdb->postmeta}
-			GROUP BY post_id, meta_key, meta_value
-			HAVING COUNT(meta_value) > 1
-		");
-		$ids = implode(',', $ids);
-
-		$deleted = $wpdb->query("
-			DELETE FROM {$wpdb->postmeta}
-			WHERE meta_id IN({$ids})
-		");
-
-		echo "<div class='updated fade'><p>Removed <strong>{$deleted}</strong> duplicates.</p></div>\n";
-	}
-
-	private function replace_value($search, $replace, $key) {
-		global $wpdb;
-
-		$what = array('meta_value' => $replace);
-		$where = array('meta_value' => $search);
-
-		if ( $key != '*' )
-			$where['meta_key'] = $key;
-
-		$count = $wpdb->update($wpdb->postmeta, $what, $where);
-
-		$message = "<div class='updated fade'><p>Replaced <strong>{$count}</strong> values: <em>{$search}</em> &raquo; <em>{$replace}</em>.</p></div>\n";
-
-		if ( $key != '*' ) {
-			$map = $this->options->get('map');
-			$message = str_replace(".</p>", " in <em>{$map[$key]}</em> taxonomy.</p>", $message);
-		}
-
-		echo $message;
-	}
-
-	private function replace_key($search, $replace) {
-		global $wpdb;
-
-		$what = array('meta_key' => $replace);
-		$where = array('meta_key' => $search);
-
-		$count = $wpdb->update($wpdb->postmeta, $what, $where);
-
-		echo "<div class='updated fade'><p>Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.</p></div>\n";
-	}
 
 	// AJAX response
 	public function ajax_meta_search() {
@@ -252,7 +339,7 @@ class settingsCFT extends scbOptionsPage_07 {
 	}
 
 /*
-	private function cf_template_import() {
+	public function cf_template_import() {
 		global $custom_field_template;
 		
 		if ( !isset($custom_field_template) ) 

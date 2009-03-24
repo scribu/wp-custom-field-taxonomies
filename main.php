@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.1.0.3
+Version: 1.2
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -30,9 +30,7 @@ define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url
 
 class CFT_core {
 	public $map;
-	public $matches;
-	public $rankings;
-	public $is_meta;
+	public $query_vars;
 
 // Core methods
 
@@ -47,11 +45,11 @@ class CFT_core {
 		$this->make_map();
 
 		// Detect query
-		if ( ! $this->is_meta = $this->detect_query() )
+		if ( ! $this->detect_query() )
 			return false;
 
 		require_once(dirname(__FILE__) . '/query.php');
-		$GLOBALS['CFT_query'] = new CFT_query($this->matches, $this->options->get('relevance'));
+		$GLOBALS['CFT_query'] = new CFT_query($this->query_vars, $this->options->get());
 
 		// Set ajax response
 		add_action('init', array($this, 'ajax_meta_search'));
@@ -80,9 +78,9 @@ class CFT_core {
 
 		foreach ( $_GET as $key => $value )
 			if ( in_array($key, $keys) )
-				$this->matches[$key] = wp_specialchars($value);
-
-		return !empty($this->matches);
+				$this->query_vars[$key] = wp_specialchars($value);
+				
+		return ! empty($this->query_vars);
 	}
 
 	public function add_template() {
@@ -110,7 +108,7 @@ class CFT_core {
 // Template tags
 
 	public function get_meta_title($format = '%name%: %value%', $between = ' and ') {
-		foreach ( $this->matches as $key => $value ) {
+		foreach ( $this->query_vars as $key => $value ) {
 			$name = $this->map[$key];
 
 			$title[] = str_replace(array('%name%', '%value%'), array($name, stripslashes($value)), $format);
@@ -290,7 +288,7 @@ class CFT_core {
 		// Get canonical location (shouldn't be relative for single posts)
 		$location = trailingslashit(get_bloginfo('url'));
 
-		foreach ( $this->matches as $key => $value )
+		foreach ( $this->query_vars as $key => $value )
 			$location = add_query_arg($key, urlencode($value), $location);
 
 		if ( $this->get_current_url() == $location )

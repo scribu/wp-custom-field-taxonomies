@@ -1,15 +1,12 @@
+.metabox-holder {width: 49% !important; float:left !important; padding-right:1% !important}
+.postbox-container {width: 99.5% !important}
+div.inside {margin:10px; position:relative; clear:both; overflow:hidden}
+
 table {width: auto !important; clear:none !important}
 td {vertical-align: middle}
 input.widefat {min-width: 100px; max-width: 200px; _width:150px}
 
-#cf-management {width: 50%; float:right; padding-left: 2em}
-#cf-management td {padding-bottom: 1em}
-#cf-management td + td {padding-left: .2em}
-#cf-management form {margin-bottom: 1em}
-#cf-management input.widefat {display: inline}
-
-#cf-taxonomies input.widefat {display: block}
-#cf-taxonomies .delete {
+#taxonomies .delete {
 	display: block;
 	width: 16px;
 	height: 16px;
@@ -17,3 +14,6 @@ input.widefat {min-width: 100px; max-width: 200px; _width:150px}
 	margin-top: 4.5px;
 	background: url("cancel.png") no-repeat;
 }
+#taxonomies .button {margin-top: 10px}
+
+.submit {float:left !important; padding: 0 !important; margin: 5px 0 !important}
