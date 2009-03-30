@@ -51,12 +51,13 @@ function meta_filter_box($exclude = array()) {
 
 /** Display a percent relevance for each post
  * Should be used inside The Loop
+ * $echo: whether to echo or return the content
  */
-function meta_relevance() {
+function meta_relevance($echo = true) {
 	if ( !isset($GLOBALS['CFT_query']) )
-		return;
+		return false;
 
-	return $GLOBALS['CFT_query']->the_relevance();
+	return $GLOBALS['CFT_query']->meta_relevance($echo);
 }
 
 /**

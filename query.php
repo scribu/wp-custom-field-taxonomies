@@ -149,10 +149,15 @@ class CFT_query {
 		$this->penalties = array_combine(array_keys($this->penalties), $values);
 	}
 
-	function the_relevance() {
+	function meta_relevance($echo) {
 		global $post;
 
-		echo round($post->meta_rank) . '%';
+		$relevance = round($post->meta_rank) . '%';
+
+		if ( !$echo )
+			return $relevance;
+
+		echo $relevance;
 	}
 }
 
