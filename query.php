@@ -57,7 +57,7 @@ class CFT_query {
 		global $wpdb;
 
 		if ( is_singular() ) {
-			CFT_core::make_canonical();
+			$GLOBALS['CFT_core']->make_canonical();
 
 			// Get posts instead of front page
 			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
