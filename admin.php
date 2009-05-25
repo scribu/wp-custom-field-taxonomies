@@ -1,17 +1,15 @@
 <?php
-if ( !class_exists('scbBoxesPage_07') )
-	require_once(dirname(__FILE__) . '/inc/scbBoxesPage.php');
 
 // Adds the CFT Settings page
-class settingsCFT extends scbBoxesPage_07 {
-	protected function setup() {
-		$this->options = $GLOBALS['CFT_core']->options;
-		$this->map = $GLOBALS['CFT_core']->make_map();
+class settingsCFT extends scbBoxesPage {
+	function __construct($file, $options, $map) {
+		$this->map = $map;
 
 		$this->args = array(
 			'page_title' => 'Custom Field Taxonomies',
-			'short_title' => 'CF Taxonomies',
-			'page_slug' => 'cf-taxonomies'
+			'menu_title' => 'CF Taxonomies',
+			'page_slug' => 'cf-taxonomies',
+			'parent' => 'post-new.php'
 		);
 
 		$this->boxes = array(
@@ -21,12 +19,6 @@ class settingsCFT extends scbBoxesPage_07 {
 			array('replace_keys', 'Replace Keys', 'advanced'),
 			array('add_default', 'Add Default Value', 'advanced'),
 			array('duplicates', 'Remove duplicates', 'advanced'),
-		);
-		
-		$this->defaults = array(
-			'map' => '',
-			'relevance' => true,
-			'rank_by_order' => false
 		);
 
 		// Used by search and replace boxes
@@ -42,39 +34,18 @@ class settingsCFT extends scbBoxesPage_07 {
 
 		// Suggest
 		add_action('wp_ajax_meta-search', array($this, 'ajax_meta_search'));
+
+		parent::__construct($file, $options);
 	}
 
-	public function page_init() {
-		extract($this->args);
+	function setup() {}
 
-		$this->pagehook = add_submenu_page('post-new.php', $short_title, $short_title, 'manage_options', $page_slug, array($this, 'page_content'));
-
-		add_action('admin_print_styles-' . $this->pagehook, array($this, 'page_head'));
-		add_action('load-' . $this->pagehook, array($this, 'boxes_init'));
-	}
-
-	public function page_head() {
+	function page_head() {
 		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '1.2');
 		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.2');
 	}
 
-	public function page_content() {
-		$this->page_header();
-
-		echo "<div id='cf-main' class='metabox-holder'>\n";
-		echo "\t<div class='postbox-container'>\n";
-		do_meta_boxes($this->pagehook, 'normal', '');
-		echo "\t</div>\n</div>\n";
-
-		echo "<div id='cf-side' class='metabox-holder'>\n";
-		echo "<div class='postbox-container'>\n";
-		do_meta_boxes($this->pagehook, 'advanced', '');
-		echo "\t</div>\n</div>\n";
-
-		$this->page_footer();
-	}
-
-	public function replace_values_handler() {
+	function replace_values_handler() {
 		if ( !isset($_POST["value_action"]) )
 			return;
 	
@@ -102,7 +73,7 @@ class settingsCFT extends scbBoxesPage_07 {
 		$this->admin_msg($message);
 	}
 
-	public function replace_values_box() {
+	function replace_values_box() {
 		$select = $this->select('name=value_key', array_merge(array('*' => '(any)'), $this->map));
 		$form = '';
 		$form[] = "In {$select} taxonomy, ";
@@ -111,7 +82,7 @@ class settingsCFT extends scbBoxesPage_07 {
 	}
 
 
-	public function add_default_handler() {
+	function add_default_handler() {
 		if ( !isset($_POST["add_default"]) )
 			return;
 
@@ -149,7 +120,7 @@ class settingsCFT extends scbBoxesPage_07 {
 		$this->admin_msg("Added {$this->map[$key]}: '{$value}' to <strong>{$count}</strong> posts.");
 	}
 
-	public function add_default_box() {
+	function add_default_box() {
 		$select = $this->select('name=default_key', $this->map);
 		$form = '';
 		$form[] = "In {$select} taxonomy, add default value:";
@@ -161,7 +132,7 @@ class settingsCFT extends scbBoxesPage_07 {
 	}
 
 
-	public function replace_keys_handler() {
+	function replace_keys_handler() {
 		if ( !isset($_POST["key_action"]) )
 			return;
 	
@@ -178,12 +149,12 @@ class settingsCFT extends scbBoxesPage_07 {
 		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
 	}
 
-	public function replace_keys_box() {
+	function replace_keys_box() {
 		echo $this->form_wrap(sprintf("<table>{$this->sr_row}</table>\n", 'key'));
 	}
 
 
-	public function duplicates_handler() {
+	function duplicates_handler() {
 		if ( 'Remove duplicates' != $_POST['action'] )
 			return;
 
@@ -205,14 +176,14 @@ class settingsCFT extends scbBoxesPage_07 {
 		$this->admin_msg("Removed <strong>{$count}</strong> duplicates.");
 	}
 
-	public function duplicates_box() {
+	function duplicates_box() {
 		echo "<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.</p>";
 		echo "<p>Please <strong>backup</strong> your database first.</p>\n";
 		echo $this->form_wrap($this->submit_button('Remove duplicates'));
 	}
 
 
-	public function settings_handler() {
+	function settings_handler() {
 		if ( 'Save settings' != $_POST['action'] )
 			return;
 
@@ -224,7 +195,7 @@ class settingsCFT extends scbBoxesPage_07 {
 		$this->admin_msg("Settings <strong>saved</strong>.");
 	}
 
-	public function settings_box() {
+	function settings_box() {
 		$rows = array(
 			array(
 				'type' => 'checkbox',
@@ -238,6 +209,7 @@ class settingsCFT extends scbBoxesPage_07 {
 			)
 		);
 
+		$output = '';
 		foreach ( $rows as $row )
 			$output .= "<p>" . $this->input($row, $this->options->get() ) . "</p>\n";
 
@@ -247,7 +219,7 @@ class settingsCFT extends scbBoxesPage_07 {
 	}
 
 
-	public function taxonomies_handler() {
+	function taxonomies_handler() {
 		if ( 'Save taxonomies' != $_POST['action'] )
 			return;
 
@@ -270,7 +242,7 @@ class settingsCFT extends scbBoxesPage_07 {
 		$this->admin_msg("Taxonomies <strong>saved</strong>.");
 	}
 
-	public function taxonomies_box() {
+	function taxonomies_box() {
 		ob_start();
 ?>
 	<table class="widefat">
@@ -318,7 +290,7 @@ class settingsCFT extends scbBoxesPage_07 {
 
 
 	// AJAX response
-	public function ajax_meta_search() {
+	function ajax_meta_search() {
 		if ( !current_user_can('manage_options') )
 			die(-1);
 
@@ -339,7 +311,7 @@ class settingsCFT extends scbBoxesPage_07 {
 	}
 
 /*
-	public function cf_template_import() {
+	function cf_template_import() {
 		global $custom_field_template;
 		
 		if ( !isset($custom_field_template) ) 

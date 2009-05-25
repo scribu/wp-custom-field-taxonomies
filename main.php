@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.2.0.2
+Version: 1.2.0.3a
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -34,12 +34,8 @@ class CFT_core {
 
 // Core methods
 
-	public function __construct() {
-		// Load options
-		if ( ! class_exists('scbOptions_06') )
-			require_once(dirname(__FILE__) . '/inc/scbOptions.php');
-
-		$this->options = new scbOptions_06('cf_taxonomies');
+	function __construct($options) {
+		$this->options = $options;
 
 		// Generate map with the latest settings
 		$this->make_map();
@@ -59,7 +55,7 @@ class CFT_core {
 		add_filter('wp_title', array($this, 'set_title'), 20, 3);
 	}
 
-	public function make_map() {
+	function make_map() {
 		$this->map = (array) $this->options->get('map');
 
 		foreach ( $this->map as $key => $name )
@@ -83,7 +79,7 @@ class CFT_core {
 		return ! empty($this->query_vars);
 	}
 
-	public function add_template() {
+	function add_template() {
 		$template = TEMPLATEPATH . "/meta.php";
 
 		if ( file_exists($template) ) {
@@ -92,7 +88,7 @@ class CFT_core {
 		}
 	}
 
-	public function set_title($title, $sep, $seplocation = '') {
+	function set_title($title, $sep, $seplocation = '') {
 		$newtitle[] = $this->get_meta_title();
 		$newtitle[] = " $sep ";
 
@@ -107,7 +103,7 @@ class CFT_core {
 
 // Template tags
 
-	public function get_meta_title($format = '%name%: %value%', $between = ' and ') {
+	function get_meta_title($format = '%name%: %value%', $between = ' and ') {
 		foreach ( $this->query_vars as $key => $value ) {
 			$name = $this->map[$key];
 
@@ -117,7 +113,7 @@ class CFT_core {
 		return implode($between, $title);
 	}
 
-	public function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
+	function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 		if ( ! $this->is_defined($key) )
 			return false;
 
@@ -130,12 +126,14 @@ class CFT_core {
 			$values[$i] = sprintf('<a href="%s">%s</a>', $this->get_meta_url($key, $value, $relative), $value);
 
 		if ( count($values) > 1 )
-			return implode($glue, $values);
+			$content = implode($glue, $values);
 		else
-			return reset($values);
+			$content = reset($values);
+
+		return apply_filters('get_linked_meta', $content, $id, $key, $glue);
 	}
 
-	public function meta_cloud($metaArgs, $cloudArgs = '') {
+	function meta_cloud($metaArgs, $cloudArgs = '') {
 		extract(wp_parse_args($metaArgs, array(
 			'key' => NULL,
 			'auth_id' => NULL,
@@ -168,7 +166,7 @@ class CFT_core {
 		echo $return;
 	}
 
-	public function filter_box($exclude = array() ) {
+	function filter_box($exclude = array() ) {
 		add_action('wp_footer', array($this, 'filter_box_scripts'));
 
 		// Generate select
@@ -193,7 +191,7 @@ class CFT_core {
 
 // Helper methods
 
-	public function filter_box_scripts() {
+	function filter_box_scripts() {
 		global $wp_scripts;
 
 		$url = $this->get_plugin_url() . '/inc';
@@ -222,7 +220,7 @@ class CFT_core {
 	}
 
 	// AJAX response
-	public function ajax_meta_search() {
+	function ajax_meta_search() {
 		if ( !isset( $_GET[CFT_AJAX_KEY] ) )
 			return;
 
@@ -284,7 +282,7 @@ class CFT_core {
 		return apply_filters('cft_get_url', $url, $key, $value, $relative);
 	}
 
-	public function make_canonical() {
+	function make_canonical() {
 		// Get canonical location (shouldn't be relative for single posts)
 		$location = trailingslashit(get_bloginfo('url'));
 
@@ -320,17 +318,28 @@ class CFT_core {
 
 // Init
 function cft_init() {
-	$GLOBALS['CFT_core'] = new CFT_core();
+	// Load scbFramework
+	require_once(dirname(__FILE__) . '/inc/scb/load.php');
+
+	$options = new scbOptions('cf_taxonomies', array(
+		'map' => '',
+		'relevance' => true,
+		'rank_by_order' => false
+	));
+
+	$GLOBALS['CFT_core'] = new CFT_core($options);
+
 	include_once(dirname(__FILE__) . '/template-tags.php');
 
 	if ( is_admin() ) {
-		include_once(dirname(__FILE__) . '/admin.php');
-		new settingsCFT(__FILE__);
+		require_once(dirname(__FILE__) . '/admin.php');
+		new settingsCFT(__FILE__, $options, $GLOBALS['CFT_core']->make_map());
 	}
+	
+	// DEBUG
+	if ( CFT_DEBUG === true )
+		add_action('wp_footer', create_function('', 'print_r($GLOBALS["wp_query"]->request);'));
 }
 
 cft_init();
 
-// DEBUG
-if ( CFT_DEBUG === true )
-	add_action('wp_footer', create_function('', 'print_r($GLOBALS["wp_query"]->request);'));

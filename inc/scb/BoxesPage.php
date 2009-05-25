@@ -1,24 +1,31 @@
 <?php
 
-// Version 0.7
+abstract class scbBoxesPage extends scbOptionsPage {
+	public $boxes;
 
-if ( ! class_exists('scbOptionsPage_07') )
-	require_once(dirname(__FILE__) . '/scbOptionsPage.php');
-
-abstract class scbBoxesPage_07 extends scbOptionsPage_07 {
-	protected $boxes;
-
-	public function page_init() {
+	function page_init() {
 		parent::page_init();
 		add_action('load-' . $this->pagehook, array($this, 'boxes_init'));
 	}
 
-	protected function page_footer() {
-		$this->boxes_js_init();
+	function page_content() {
+		echo "<div id='cf-main' class='metabox-holder'>\n";
+		echo "\t<div class='postbox-container'>\n";
+		do_meta_boxes($this->pagehook, 'normal', '');
+		echo "\t</div>\n</div>\n";
+
+		echo "<div id='cf-side' class='metabox-holder'>\n";
+		echo "<div class='postbox-container'>\n";
+		do_meta_boxes($this->pagehook, 'advanced', '');
+		echo "\t</div>\n</div>\n";
+	}
+
+	function page_footer() {
+		$this->_boxes_js_init();
 		parent::page_footer();
 	}
 
-	protected function form_handler() {
+	function form_handler() {
 		if ( empty($_POST) )
 			return;
 
@@ -27,15 +34,15 @@ abstract class scbBoxesPage_07 extends scbOptionsPage_07 {
 		do_action('form-handler-' . $this->pagehook);
 	}
 
-	public function boxes_init() {
+	function boxes_init() {
 		wp_enqueue_script('common');
 		wp_enqueue_script('wp-lists');
 		wp_enqueue_script('postbox');
 		
-		$this->add_boxes();
+		$this->_add_boxes();
 	}
 
-	private function add_boxes() {
+	function _add_boxes() {
 		foreach($this->boxes as $i) {
 			// Add boxes
 			add_meta_box($i[0], $i[1], array($this, "{$i[0]}_box"), $this->pagehook, $i[2]);
@@ -45,7 +52,7 @@ abstract class scbBoxesPage_07 extends scbOptionsPage_07 {
 	}
 
 	// Adds necesary code for JS to work
-	private function boxes_js_init() {
+	function _boxes_js_init() {
 ?>
 <script type="text/javascript">
 	//<![CDATA[

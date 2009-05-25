@@ -44,7 +44,7 @@ class CFT_query {
 
 		$nr = count($this->query_vars);
 
-		return $fields . ", COUNT({$wpdb->posts}.ID) * 100 / {$nr} AS meta_rank";
+		return $fields . ", COUNT(*) * 100 / {$nr} AS meta_rank";
 	}
 
 	function posts_join($join) {
@@ -83,9 +83,9 @@ class CFT_query {
 
 		// Set having
 		if ( $this->options['relevance'] )
-			$having = ' HAVING COUNT(post_id) > 0';
+			$having = ' HAVING COUNT(*) > 0';
 		else
-			$having = ' HAVING COUNT(post_id) = ' . count($this->query_vars);
+			$having = ' HAVING COUNT(*) = ' . count($this->query_vars);
 
 		$column = "{$wpdb->posts}.ID";
 

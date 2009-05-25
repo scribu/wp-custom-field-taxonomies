@@ -1,28 +1,24 @@
 <?php
 
-// Version 0.7.2
-
-abstract class scbForms_07 {
+class scbForms {
 	/* Generates one or more input fields, with labels
 	$args =	array (
 		'type' => any valid <input> type
 		'names' => string | array
-		'values' => string | array (default: 1 or $options['name'])
+		'values' => string | array (default: 1 or $options[$name])
 		'check' => true | false (default: true)
-		'extra' => string (default: class="widefat")
+		'extra' => string (default: class="regular-text")
 		'desc' => string (default: name)
 		'desc_pos' => 'before' | 'after' | 'none' (default: after)
 	);
 	$options = array('name' => 'value'...)
 	*/
 
-	public function input($args, $options = array()) {
-		$token = '%input%';
-
+	function input($args, $options = array()) {
 		extract(wp_parse_args($args, array(
 			'desc_pos' => 'after',
 			'check' => true,
-			'extra' => 'class="widefat"'
+			'extra' => 'class="regular-text"'
 		)));
 
 		// Check required fields
@@ -36,17 +32,20 @@ abstract class scbForms_07 {
 
 		// Check for defined options
 		if ( $check && 'submit' != $type && !empty($options) )
-			self::check_names($names, $options);
+			scbForms::_check_names($names, $options);
 
 		$f1 = is_array($names);
-		$f2 = is_array($values);
 
 		// Set default values
-		if ( !isset($values) )
+		if ( !isset($values) ) {
+			$values = '';
 			if ( 'text' == $type && !$f1 )
-				$values = stripslashes(wp_specialchars($options[$names], ENT_QUOTES));
+				$values = stripslashes(wp_specialchars(@$options[$names], ENT_QUOTES));
 			elseif ( in_array($type, array('checkbox', 'radio')) )
 				$values = true;
+		}
+
+		$f2 = is_array($values);
 
 		// Expand names or values
 		if ( !$f1 && !$f2 )
@@ -72,39 +71,41 @@ abstract class scbForms_07 {
 		else
 			$l1 = 'desc';
 
+		$token = '%input%';
+
 		// Generate output
 		foreach ( $a as $name => $val ) {
 			// Build extra string
 			$extra_s = $extra;
 
-			if ( in_array($type, array('checkbox', 'radio')) && $options[$$i1] == $$i2)
+			if ( in_array($type, array('checkbox', 'radio')) && @$options[$$i1] == $$i2)
 				$extra_s .= " checked='checked'";
 
 			// Build the item
-			$input = "<input name='{$$i1}' value='{$$i2}' type='{$type}' {$extra_s}/> ";
-
-			// Add description
-			$desc = $$l1;
-			$desc = str_replace('[]', '', $desc);
-			if ( FALSE == stripos($desc, $token) )
-				if ( 'before' == $desc_pos )
-					$desc .= ' ' . $token;
-				elseif ( 'after' == $desc_pos )
-					$desc = $token . ' ' . $desc;
-			$desc = str_replace($token, $input, $desc);
-			$desc = trim($desc);
+			$input = "<input id='{$$i1}' name='{$$i1}' value='{$$i2}' type='{$type}' {$extra_s}/> ";
 
 			// Add label
-			if ( 'none' == $desc_pos || empty($desc) )
+			$label = @$$l1;
+			$label = str_replace('[]', '', $label);
+			if ( FALSE == stripos($label, $token) )
+				if ( 'before' == $desc_pos )
+					$label .= ' ' . $token;
+				elseif ( 'after' == $desc_pos )
+					$label = $token . ' ' . $label;
+			$label = trim(str_replace($token, $input, $label));
+
+			// Add label
+			if ( 'none' == $desc_pos || empty($label) )
 				$output[] = $input . "\n";
 			else
-				$output[] = "<label for='{$$i1}'>{$desc}</label>\n";
+				$output[] = "<label for='{$$i1}'>{$label}</label>\n";
 		}
 
 		return implode("\n", $output);
 	}
 
-	public static function select($args, $options) {
+	// Creates a <select> (static)
+	function select($args, $options) {
 		extract(wp_parse_args($args, array(
 			'name' => '', 
 			'selected' => NULL, 
@@ -115,25 +116,24 @@ abstract class scbForms_07 {
 			trigger_error('No name specified', E_USER_NOTICE);
 
 		if ( !is_array($options) ) {
-			trigger_error("Second argument is expected to be an associative array", E_USER_WARNING);
+			trigger_error("Second argument is expected to be an array", E_USER_WARNING);
 			return;
 		}
 
+		$opts = '';
 		foreach ( $options as $key => $value ) {
-			$extra_s = $extra;
-			if ( $name === $selected )
-				$extra_s = " selected='selected'";
-			else
-				$extra_s = "";
+			$extra_s = "";
+			if ( $key == $selected )
+				$extra_s .= " selected='selected'";
 
 			$opts .= "\t<option value='{$key}'{$extra_s}>{$value}</option>\n";
 		}
 
-		return "<select name='{$name}'>\n{$opts}</select>\n";
+		return "<select name='{$name}' $extra>\n{$opts}</select>\n";
 	}
 
-	// Creates a textarea
-	public static function textarea($args, $content) {
+	// Creates a <textarea> (static)
+	function textarea($args, $content) {
 		extract(wp_parse_args($args, array(
 			'name' => '', 
 			'extra' => 'class="widefat"',
@@ -150,7 +150,7 @@ abstract class scbForms_07 {
 	}
 
 	// Adds a form around the $content, including a hidden nonce field
-	public function form_wrap($content, $nonce = 'update_options') {
+	function form_wrap($content, $nonce = 'update_options') {
 		$output .= "\n<form method='post' action=''>\n";
 		$output .= $content;
 		$output .= wp_nonce_field($action = $nonce, $name = "_wpnonce", $referer = true , $echo = false);
@@ -163,8 +163,8 @@ abstract class scbForms_07 {
 //_____HELPER METHODS (SHOULD NOT BE CALLED DIRECTLY)_____
 
 
-	// Checks if selected $names have equivalent in $options. Used by form_row()
-	protected static function check_names($names, $options) {
+	// Checks if selected $names have equivalent in $options. Used by form_row() (static)
+	function _check_names($names, $options) {
 		$names = (array) $names;
 
 		foreach ( $names as $i => $name )
@@ -175,13 +175,30 @@ abstract class scbForms_07 {
 	}
 }
 
-// < PHP 5.2
+// PHP < 5.2
 if ( !function_exists('array_fill_keys') ) :
 function array_fill_keys($keys, $value) {
-	$r = array();
+	if ( !is_array($keys) )
+		trigger_error('First argument is expected to be an array.' . gettype($keys) . 'given', E_USER_WARNING);
 
 	foreach($keys as $key)
 		$r[$key] = $value;
+
+	return $r;
+}
+endif;
+
+// PHP < 5
+if ( !function_exists('array_combine') ) :
+function array_combine($keys, $values) {
+	if ( !is_array($keys) )
+		trigger_error('First argument is expected to be an array.' . gettype($keys) . 'given', E_USER_WARNING);
+
+	if ( !is_array($keys) )
+		trigger_error('Second argument is expected to be an array' . gettype($values) . 'given', E_USER_WARNING);
+
+	foreach ( $keys as $i => $key )
+		$r[$key] = $values[$i];
 
 	return $r;
 }
