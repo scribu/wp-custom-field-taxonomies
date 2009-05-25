@@ -321,7 +321,7 @@ function cft_init() {
 	// Load scbFramework
 	require_once(dirname(__FILE__) . '/inc/scb/load.php');
 
-	$options = new scbOptions('cf_taxonomies', array(
+	$options = new scbOptions('cf_taxonomies', __FILE__, array(
 		'map' => '',
 		'relevance' => true,
 		'rank_by_order' => false
