@@ -27,9 +27,9 @@ class settingsCFT extends scbBoxesPage
 		$this->sr_row = '
 		<tr>
 			<td>Replace %1$s</td>
-			<td><input class="normal-text" name="%1$s_search" value="" type="text" /></td>
+			<td><input class="regular-text" name="%1$s_search" value="" type="text" /></td>
 			<td>with</td>
-			<td><input class="normal-text" name="%1$s_replace" value="" type="text" /></td>
+			<td><input class="regular-text" name="%1$s_replace" value="" type="text" /></td>
 			<td><input class="button" name="%1$s_action" value="Go" type="submit" /></td>
 		</tr>
 		';
@@ -143,7 +143,7 @@ class settingsCFT extends scbBoxesPage
 	
 		$form = array();
 		$form[] = "<p>In {$select} taxonomy, add default value:";
-		$form[] = '<input class="normal-text" name="default_value" value="" type="text" />';
+		$form[] = '<input class="regular-text" name="default_value" value="" type="text" />';
 		$form[] = '<input class="button" name="add_default" value="Go" type="submit" />';
 		$form[] = '</p>';
 
