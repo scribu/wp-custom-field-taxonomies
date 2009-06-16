@@ -1,8 +1,10 @@
 <?php
 
 // Adds the CFT Settings page
-class settingsCFT extends scbBoxesPage {
-	function __construct($file, $options, $map) {
+class settingsCFT extends scbBoxesPage 
+{
+	function __construct($file, $options, $map)
+	{
 		$this->map = $map;
 
 		$this->args = array(
@@ -15,10 +17,10 @@ class settingsCFT extends scbBoxesPage {
 		$this->boxes = array(
 			array('taxonomies', 'Register Taxonomies', 'normal'),
 			array('settings', 'Settings', 'normal'),
-			array('replace_values', 'Replace Values', 'advanced'),
-			array('replace_keys', 'Replace Keys', 'advanced'),
-			array('add_default', 'Add Default Value', 'advanced'),
-			array('duplicates', 'Remove duplicates', 'advanced'),
+			array('replace_values', 'Replace Values', 'side'),
+			array('replace_keys', 'Replace Keys', 'side'),
+			array('add_default', 'Add Default Value', 'side'),
+			array('duplicates', 'Remove duplicates', 'side'),
 		);
 
 		// Used by search and replace boxes
@@ -38,14 +40,14 @@ class settingsCFT extends scbBoxesPage {
 		parent::__construct($file, $options);
 	}
 
-	function setup() {}
-
-	function page_head() {
+	function page_head()
+	{
 		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '1.2');
-		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.2');
+//		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.2');
 	}
 
-	function replace_values_handler() {
+	function replace_values_handler()
+	{
 		if ( !isset($_POST["value_action"]) )
 			return;
 	
@@ -65,24 +67,33 @@ class settingsCFT extends scbBoxesPage {
 
 		$message = "Replaced <strong>{$count}</strong> values: <em>{$search}</em> &raquo; <em>{$replace}</em>";
 
-		if ( $key != '*' ) {
+		if ( $key != '*' )
 			$message .= " in <em>{$this->map[$key]}</em> taxonomy.</p>";
-		} else
+		else
 			$message .= ".";
 
 		$this->admin_msg($message);
 	}
 
-	function replace_values_box() {
-		$select = $this->select('name=value_key', array_merge(array('*' => '(any)'), $this->map));
-		$form = '';
-		$form[] = "In {$select} taxonomy, ";
+	function replace_values_box()
+	{
+		$select = $this->input(array(
+			'type' => 'select',
+			'name' => 'value_key',
+			'text' => '(any)',
+			'value' => $this->map
+		));
+
+		$form = array();
+		$form[] = "<p>In {$select} taxonomy, ";
 		$form[] = sprintf("<table>{$this->sr_row}</table>\n", 'value');
-		echo $this->form_wrap(implode("\n", $form));
+		$form[] = '</p>';
+		echo $this->form_wrap(implode("\n", $form), false);
 	}
 
 
-	function add_default_handler() {
+	function add_default_handler()
+	{
 		if ( !isset($_POST["add_default"]) )
 			return;
 
@@ -105,7 +116,8 @@ class settingsCFT extends scbBoxesPage {
 			)
 		");
 
-		if ( empty($ids) ) {
+		if ( empty($ids) )
+		{
 			$this->admin_msg("All posts have values for <em>{$this->map[$key]}</em> taxonomy.");
 			return;
 		}
@@ -120,19 +132,28 @@ class settingsCFT extends scbBoxesPage {
 		$this->admin_msg("Added {$this->map[$key]}: '{$value}' to <strong>{$count}</strong> posts.");
 	}
 
-	function add_default_box() {
-		$select = $this->select('name=default_key', $this->map);
-		$form = '';
-		$form[] = "In {$select} taxonomy, add default value:";
-		$form[] = '<input class="widefat" name="default_value" value="" type="text" />';
+	function add_default_box()
+	{
+		$select = $this->input(array(
+			'type' => 'select',
+			'name' => 'default_key',
+			'text' => '(any)',
+			'value' => $this->map
+		));
+	
+		$form = array();
+		$form[] = "<p>In {$select} taxonomy, add default value:";
+		$form[] = '<input class="normal-text" name="default_value" value="" type="text" />';
 		$form[] = '<input class="button" name="add_default" value="Go" type="submit" />';
+		$form[] = '</p>';
 
-		echo $this->form_wrap(implode("\n", $form));
+		echo $this->form_wrap(implode("\n", $form), false);
 		echo '<p>This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you add a new taxonomy.</p>';
 	}
 
 
-	function replace_keys_handler() {
+	function replace_keys_handler()
+	{
 		if ( !isset($_POST["key_action"]) )
 			return;
 	
@@ -149,12 +170,14 @@ class settingsCFT extends scbBoxesPage {
 		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
 	}
 
-	function replace_keys_box() {
+	function replace_keys_box()
+	{
 		echo $this->form_wrap(sprintf("<table>{$this->sr_row}</table>\n", 'key'));
 	}
 
 
-	function duplicates_handler() {
+	function duplicates_handler()
+	{
 		if ( 'Remove duplicates' != $_POST['action'] )
 			return;
 
@@ -176,14 +199,16 @@ class settingsCFT extends scbBoxesPage {
 		$this->admin_msg("Removed <strong>{$count}</strong> duplicates.");
 	}
 
-	function duplicates_box() {
+	function duplicates_box()
+	{
 		echo "<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.</p>";
 		echo "<p>Please <strong>backup</strong> your database first.</p>\n";
 		echo $this->form_wrap($this->submit_button('Remove duplicates'));
 	}
 
 
-	function settings_handler() {
+	function settings_handler()
+	{
 		if ( 'Save settings' != $_POST['action'] )
 			return;
 
@@ -195,7 +220,8 @@ class settingsCFT extends scbBoxesPage {
 		$this->admin_msg("Settings <strong>saved</strong>.");
 	}
 
-	function settings_box() {
+	function settings_box()
+	{
 		$rows = array(
 			array(
 				'type' => 'checkbox',
@@ -213,19 +239,19 @@ class settingsCFT extends scbBoxesPage {
 		foreach ( $rows as $row )
 			$output .= "<p>" . $this->input($row, $this->options->get() ) . "</p>\n";
 
-		$output .= $this->submit_button('Save settings');
-
-		echo $this->form_wrap($output);
+		echo $this->form_wrap($output, 'Save settings');
 	}
 
 
-	function taxonomies_handler() {
+	function taxonomies_handler()
+	{
 		if ( 'Save taxonomies' != $_POST['action'] )
 			return;
 
 		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
 
-		foreach ( $_POST['key'] as $i => $key ) {
+		foreach ( $_POST['key'] as $i => $key )
+	{
 			$key = sanitize_title_with_dashes($key);
 
 			if ( empty($key) || in_array($key, $restricted_keys) )
@@ -242,7 +268,8 @@ class settingsCFT extends scbBoxesPage {
 		$this->admin_msg("Taxonomies <strong>saved</strong>.");
 	}
 
-	function taxonomies_box() {
+	function taxonomies_box()
+	{
 		ob_start();
 ?>
 	<table class="widefat">
@@ -257,7 +284,8 @@ class settingsCFT extends scbBoxesPage {
 <?php
 	$map = $this->options->get('map');
 	if ( !empty($map) )
-		foreach ( $map as $key => $title ) {
+		foreach ( $map as $key => $title )
+	{
 			$rows = array(				
 				array(
 					'type' => 'text',
@@ -284,13 +312,13 @@ class settingsCFT extends scbBoxesPage {
 	  </tbody>
 	</table>
 <?php
-		echo $this->submit_button('Save taxonomies');
-		echo $this->form_wrap(ob_get_clean());
+		echo $this->form_wrap(ob_get_clean(), 'Save taxonomies');
 	}
 
 
 	// AJAX response
-	function ajax_meta_search() {
+	function ajax_meta_search()
+	{
 		if ( !current_user_can('manage_options') )
 			die(-1);
 
@@ -311,7 +339,8 @@ class settingsCFT extends scbBoxesPage {
 	}
 
 /*
-	function cf_template_import() {
+	function cf_template_import()
+	{
 		global $custom_field_template;
 		
 		if ( !isset($custom_field_template) ) 

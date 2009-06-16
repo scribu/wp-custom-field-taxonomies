@@ -54,11 +54,11 @@ abstract class CFT_core
 		CFT_query::init(self::$query_vars, self::$options->get());
 
 		// Set ajax response
-		add_action('init', array(__CLASS__ 'ajax_meta_search'));
+		add_action('init', array(__CLASS__, 'ajax_meta_search'));
 
 		// Customize template and title
-		add_action('template_redirect', array(__CLASS__ 'add_template'), 999);
-		add_filter('wp_title', array(__CLASS__ 'set_title'), 20, 3);
+		add_action('template_redirect', array(__CLASS__, 'add_template'), 999);
+		add_filter('wp_title', array(__CLASS__, 'set_title'), 20, 3);
 	}
 
 	static function make_map()
@@ -183,7 +183,7 @@ abstract class CFT_core
 
 	static function filter_box($exclude = array() )
 	{
-		add_action('wp_footer', array(__CLASS__ 'filter_box_scripts'));
+		add_action('wp_footer', array(__CLASS__, 'filter_box_scripts'));
 
 		// Generate select
 		$select = '<option />';
