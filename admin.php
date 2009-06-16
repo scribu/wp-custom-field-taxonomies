@@ -263,7 +263,7 @@ class settingsCFT extends scbBoxesPage
 		$this->options->update_part(array('map' => $new_map));
 		
 		// Rebuild map
-		$this->map = $GLOBALS['CFT_core']->make_map();
+		$this->map = CFT_core::make_map();
 
 		$this->admin_msg("Taxonomies <strong>saved</strong>.");
 	}

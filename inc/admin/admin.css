@@ -1,16 +1,10 @@
-div.inside {position:relative}
-
-input.normal-text {min-width: 100px; max-width: 200px; _width:150px}
-
-#taxonomies .delete {
+#taxonomies .delete
+{
 	display: block;
 	width: 16px;
 	height: 16px;
 	text-indent: -999px;
-	margin-top: 4.5px;
 	background: url("cancel.png") no-repeat;
 }
 
 #add {display:block; margin: 5px}
-
-#taxonomies .button {margin-top: 10px}
