@@ -24,9 +24,6 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-require_once dirname(__FILE__) . '/inc/scb-check.php';
-if ( ! scb_check(__FILE__) ) return;
-
 define('CFT_AJAX_KEY', 'ajax-meta-search');
 define('CFT_AJAX_URL', get_bloginfo('url') . '?' . CFT_AJAX_KEY . '=');
 define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url = '" . CFT_AJAX_URL . "';</script>");
@@ -346,7 +343,7 @@ cft_init();
 function cft_init()
 {
 	// Load scbFramework
-//	require_once(dirname(__FILE__) . '/inc/scb/load.php');
+	require_once(dirname(__FILE__) . '/inc/scb/load.php');
 
 	$options = new scbOptions('cf_taxonomies', __FILE__, array(
 		'map' => '',
