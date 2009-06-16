@@ -73,3 +73,7 @@ This is probably because you have `query_posts()` somewhere in there. An easy wo
 1. Copy meta.php from the plugin directory into your theme directory
 1. Make additional customizations, if necessary.
 
+== Screenshots ==
+
+1. The settings page
+
