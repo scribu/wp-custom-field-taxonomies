@@ -27,9 +27,9 @@ class settingsCFT extends scbBoxesPage
 		$this->sr_row = '
 		<tr>
 			<td>Replace %1$s</td>
-			<td><input class="widefat" name="%1$s_search" value="" type="text" /></td>
+			<td><input class="normal-text" name="%1$s_search" value="" type="text" /></td>
 			<td>with</td>
-			<td><input class="widefat" name="%1$s_replace" value="" type="text" /></td>
+			<td><input class="normal-text" name="%1$s_replace" value="" type="text" /></td>
 			<td><input class="button" name="%1$s_action" value="Go" type="submit" /></td>
 		</tr>
 		';
@@ -43,7 +43,7 @@ class settingsCFT extends scbBoxesPage
 	function page_head()
 	{
 		wp_enqueue_script('cft_js', $this->plugin_url . '/inc/admin/admin.js', array('jquery', 'suggest'), '1.2');
-//		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.2');
+		wp_enqueue_style('cft_css', $this->plugin_url . '/inc/admin/admin.css', array(), '1.2');
 	}
 
 	function replace_values_handler()

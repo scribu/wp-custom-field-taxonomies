@@ -1,10 +1,6 @@
-.metabox-holder {width: 49% !important; float:left !important; padding-right:1% !important}
-.postbox-container {width: 99.5% !important}
-div.inside {margin:10px; position:relative; clear:both; overflow:hidden}
+div.inside {position:relative}
 
-table {width: auto !important; clear:none !important}
-td {vertical-align: middle}
-input.widefat {min-width: 100px; max-width: 200px; _width:150px}
+input.normal-text {min-width: 100px; max-width: 200px; _width:150px}
 
 #taxonomies .delete {
 	display: block;
@@ -14,6 +10,7 @@ input.widefat {min-width: 100px; max-width: 200px; _width:150px}
 	margin-top: 4.5px;
 	background: url("cancel.png") no-repeat;
 }
-#taxonomies .button {margin-top: 10px}
 
-.submit {float:left !important; padding: 0 !important; margin: 5px 0 !important}
+#add {display:block; margin: 5px}
+
+#taxonomies .button {margin-top: 10px}
