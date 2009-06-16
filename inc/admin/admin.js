@@ -1,12 +1,12 @@
 jQuery(document).ready(function() 
 {
-	function bind_suggest(element, field) 
+	function bind_suggest(el, field)
 	{
-		jQuery(element).suggest('admin-ajax.php?action=meta-search&field=' + field, {delay: 200, minchars: 2});
+		jQuery(el).suggest('admin-ajax.php?action=meta-search&field=' + field, {delay: 200, minchars: 2});
 	}
 
 	// Taxonomy suggest
-	jQuery('#cf-taxonomies [name^=key]').each(function() {
+	jQuery('#taxonomies [name^=key]').each(function() {
 		bind_suggest(this, 'key');
 	});
 
@@ -23,11 +23,11 @@ jQuery(document).ready(function()
 	});
 
 	// Add row button
-	row = jQuery('#add').parents('tbody').find('tr:first');
+	button = jQuery('#add');
+	row = button.parents('tbody').find('tr:first').clone(true)
+			.find(':text').val('').end();
 
-	jQuery('#add').click(function() {
-		row.clone(true)
-			.find(':text').val('').end()
-			.insertBefore(jQuery(this).parents('tr'));
+	button.click(function() {
+		row.clone(true).insertBefore(jQuery(this).parents('tr'));
 	});
 });

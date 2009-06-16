@@ -28,7 +28,7 @@ class settingsCFT extends scbBoxesPage
 		<tr>
 			<td>Replace %1$s</td>
 			<td><input class="regular-text" name="%1$s_search" value="" type="text" /></td>
-			<td>with</td>
+			<td class="with">with</td>
 			<td><input class="regular-text" name="%1$s_replace" value="" type="text" /></td>
 			<td><input class="button" name="%1$s_action" value="Go" type="submit" /></td>
 		</tr>
@@ -92,6 +92,30 @@ class settingsCFT extends scbBoxesPage
 	}
 
 
+	function replace_keys_handler()
+	{
+		if ( !isset($_POST["key_action"]) )
+			return;
+	
+		global $wpdb;
+
+		$search = $wpdb->escape($_POST["key_search"]);
+		$replace = $wpdb->escape($_POST["key_replace"]);
+
+		$what = array('meta_key' => $replace);
+		$where = array('meta_key' => $search);
+
+		$count = (int) $wpdb->update($wpdb->postmeta, $what, $where);
+
+		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
+	}
+
+	function replace_keys_box()
+	{
+		echo $this->form_wrap(sprintf("<table>{$this->sr_row}</table>\n", 'key'), false);
+	}
+
+
 	function add_default_handler()
 	{
 		if ( !isset($_POST["add_default"]) )
@@ -142,37 +166,12 @@ class settingsCFT extends scbBoxesPage
 		));
 	
 		$form = array();
-		$form[] = "<p>In {$select} taxonomy, add default value:";
-		$form[] = '<input class="regular-text" name="default_value" value="" type="text" />';
-		$form[] = '<input class="button" name="add_default" value="Go" type="submit" />';
-		$form[] = '</p>';
+		$form[] = "<p>In {$select} taxonomy, add default value:</p>";
+		$form[] = '<p><input class="regular-text" name="default_value" value="" type="text" />';
+		$form[] = '<input class="button" name="add_default" value="Go" type="submit" /></p>';
 
 		echo $this->form_wrap(implode("\n", $form), false);
 		echo '<p>This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you add a new taxonomy.</p>';
-	}
-
-
-	function replace_keys_handler()
-	{
-		if ( !isset($_POST["key_action"]) )
-			return;
-	
-		global $wpdb;
-
-		$search = $wpdb->escape($_POST["key_search"]);
-		$replace = $wpdb->escape($_POST["key_replace"]);
-
-		$what = array('meta_key' => $replace);
-		$where = array('meta_key' => $search);
-
-		$count = (int) $wpdb->update($wpdb->postmeta, $what, $where);
-
-		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
-	}
-
-	function replace_keys_box()
-	{
-		echo $this->form_wrap(sprintf("<table>{$this->sr_row}</table>\n", 'key'));
 	}
 
 
@@ -203,7 +202,7 @@ class settingsCFT extends scbBoxesPage
 	{
 		echo "<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.</p>";
 		echo "<p>Please <strong>backup</strong> your database first.</p>\n";
-		echo $this->form_wrap($this->submit_button('Remove duplicates'));
+		echo $this->form_wrap('', 'Remove duplicates');
 	}
 
 
@@ -251,7 +250,7 @@ class settingsCFT extends scbBoxesPage
 		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
 
 		foreach ( $_POST['key'] as $i => $key )
-	{
+		{
 			$key = sanitize_title_with_dashes($key);
 
 			if ( empty($key) || in_array($key, $restricted_keys) )
@@ -282,29 +281,33 @@ class settingsCFT extends scbBoxesPage
 	  </thead>
 	  <tbody>
 <?php
-	$map = $this->options->get('map');
-	if ( !empty($map) )
+		$map = $this->options->get('map');
+		if ( empty($map) )
+			$map = array('' => '');
+
 		foreach ( $map as $key => $title )
-	{
+		{
 			$rows = array(				
 				array(
 					'type' => 'text',
 					'names' => 'key[]',
-					'values' => $key
+					'values' => $key,
+					'desc' => false,
 				),
 				array(
 					'type' => 'text',
 					'names' => 'title[]',
-					'values' => $title
+					'values' => $title,
+					'desc' => false,
 				)
 			);
 
 			echo "<tr>\n";
 			foreach ( $rows as $row )
 				echo "\t<td>{$this->input($row)}</td>\n";
-			echo "\t<td><a class='delete' href='#'>Delete</a></td>\n";
+			echo "\t<td class='delete'><a href='#'>Delete</a></td>\n";
 			echo "</tr>\n";
-	 	} 
+		}
 ?>
 		<tr>
 			<td colspan="3"><a id="add" href="#">Add row</a></td>

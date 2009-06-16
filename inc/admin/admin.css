@@ -1,10 +1,26 @@
-#taxonomies .delete
-{
+#taxonomies table {
+	background-color: #F9F9F9;
+	border-color: #DFDFDF;
+}
+
+#taxonomies th {
+	text-align: center;
+	background: #F1F1F1;
+	padding: 5px 8px 8px;
+	line-height: 1;
+}
+
+.delete {padding-left: 0 !important}
+.delete a {
 	display: block;
 	width: 16px;
 	height: 16px;
+	margin-top: 1px;
 	text-indent: -999px;
 	background: url("cancel.png") no-repeat;
 }
 
 #add {display:block; margin: 5px}
+
+.with {padding: 0px 3px}
+#replace_values .button, #replace_keys .button {margin-left: 3px}
