@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.2.0.3a
+Version: 1.2.1
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/

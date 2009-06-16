@@ -1,20 +1,23 @@
 <?php
 
-class scbOptions {
-	public $key;
-	public $defaults;
+class scbOptions 
+{
+	public $key;			// the option name
+	public $defaults;		// the default value(s)
+
 	public $wp_filter_id;	// used by WP hooks
 
-	private $data;
+	protected $data;
 
-	function __construct($key, $file = '', $defaults = '') {
+	function __construct($key, $file = '', $defaults = '')
+	{
 		$this->key = $key;
 		$this->defaults = $defaults;
 		$this->data = get_option($this->key);
 
-		if ( is_array($this->defaults) ) {
-
-			if ( $this->data === FALSE )
+		if ( is_array($this->defaults) )
+		{
+			if ( $this->data === NULL )
 				$this->data = array();
 
 			register_activation_hook($file, array($this, 'update_reset'));
@@ -23,8 +26,9 @@ class scbOptions {
 		register_uninstall_hook($file, array($this, 'delete'));
 	}
 
-	// Get all data, certain fields or a single field
-	function get($field = '') {
+	// Get all data fields, certain fields or a single field
+	function get($field = '')
+	{
 		if ( empty($field) )
 			return $this->data;
 
@@ -37,24 +41,28 @@ class scbOptions {
 		return $result;
 	}
 
-	function __get($field) {
+	function __get($field)
+	{
 		return $this->data[$field];
 	}
 
-	function __set($field, $data) {
+	function __set($field, $data)
+	{
 		$this->update_part(array($field => $data));
 	}
 
 	// Update one or more fields, leaving the others intact
-	function update_part($newdata) {
+	function update_part($newdata)
+	{
 		if ( !is_array($newdata) )
 			return trigger_error("Wrong data_type", E_USER_WARNING);
 
 		$this->update(array_merge($this->data, $newdata));
 	}
 
-	// Update data
-	function update($newdata) {
+	// Update all data fields
+	function update($newdata)
+	{
 		if ( $this->data === $newdata )
 			return;
 
@@ -64,24 +72,27 @@ class scbOptions {
 		   add_option($this->key, $this->data);
 	}
 
-	// A combination of reset and update
-	function update_reset() {
+	// Add new fields with their default values
+	function update_reset()
+	{
 		$this->update(array_merge($this->defaults, $this->data));
 	}
 
 	// Reset option to defaults
-	function reset() {
+	function reset()
+	{
 		$this->update($this->defaults);
 	}
 
 	// Delete option
-	function delete() {
+	function delete()
+	{
 		delete_option($this->key);
 	}
 }
 
 // WP < 2.7
 if ( !function_exists('register_uninstall_hook') ) :
-function register_uninstall_hook() {}
+	function register_uninstall_hook(){}
 endif;
 

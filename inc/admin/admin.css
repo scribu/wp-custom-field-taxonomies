@@ -1,9 +1,9 @@
-#taxonomies table {
+.inside table.widefat {
 	background-color: #F9F9F9;
 	border-color: #DFDFDF;
 }
 
-#taxonomies th {
+.inside table.widefat th {
 	text-align: center;
 	background: #F1F1F1;
 	padding: 5px 8px 8px;
