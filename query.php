@@ -1,6 +1,6 @@
 <?php
 
-class CFT_query 
+abstract class CFT_query 
 {
 	static $query_vars;
 	static $options;
@@ -23,7 +23,7 @@ class CFT_query
 		);
 
 		// And add them
-		add_action('pre_get_posts', array(__CLASS__ 'add_filters'));
+		add_action('pre_get_posts', array(__CLASS__, 'add_filters'));
 	}
 
 	static function add_filters($obj)
@@ -36,7 +36,7 @@ class CFT_query
 		{
 			if ( empty($callback) )
 				$callback = $name;
-			add_filter($name, array(__CLASS__ $callback));
+			add_filter($name, array(__CLASS__, $callback));
 		}
 	}
 
@@ -46,7 +46,7 @@ class CFT_query
 		{
 			if ( empty($callback) )
 				$callback = $name;
-			remove_filter($name, array(__CLASS__ $callback));
+			remove_filter($name, array(__CLASS__, $callback));
 		}
 	}
 
@@ -142,7 +142,7 @@ class CFT_query
 					$post->meta_rank -= self::$penalties[$key] / (count(self::$query_vars) / 2);
 		}
 
-		usort($posts, array(__CLASS__ 'cmp_relevance'));
+		usort($posts, array(__CLASS__, 'cmp_relevance'));
 
 		return $posts;
 	}

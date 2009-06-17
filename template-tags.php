@@ -6,7 +6,7 @@
 
 // Check if the current page is a meta page.
 function is_meta() {
-	return ! empty($GLOBALS['CFT_core']->query_vars);
+	return ! empty(CFT_core::$query_vars);
 }
 
 /**
@@ -15,7 +15,7 @@ function is_meta() {
  * $between: what to put between multiple name => value pairs
  */
 function get_meta_title($format = '%name%: %value%', $between = ' and ') {
-	return $GLOBALS['CFT_core']->get_meta_title($format, $between);
+	return CFT_core::get_meta_title($format, $between);
 }
 
 /**
@@ -25,7 +25,7 @@ function get_meta_title($format = '%name%: %value%', $between = ' and ') {
  * $glue: what to put between values (optional)
  */
 function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
-	return $GLOBALS['CFT_core']->get_linked_meta($id, $key, $glue, $relative);
+	return CFT_core::get_linked_meta($id, $key, $glue, $relative);
 }
 
 /**
@@ -37,7 +37,7 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
  * $cloudArgs: see wp_tag_cloud() for available args (optional)
  */
 function meta_cloud($metaArgs, $cloudArgs = '') {
-	return $GLOBALS['CFT_core']->meta_cloud($metaArgs, $cloudArgs);
+	return CFT_core::meta_cloud($metaArgs, $cloudArgs);
 }
 
 /**
@@ -46,7 +46,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
  * $exclude: an array of meta keys to be excluded
  */
 function meta_filter_box($exclude = array()) {
-	return $GLOBALS['CFT_core']->filter_box($exclude);
+	return CFT_core::filter_box($exclude);
 }
 
 /** Display a percent relevance for each post
@@ -54,10 +54,10 @@ function meta_filter_box($exclude = array()) {
  * $echo: whether to echo or return the content
  */
 function meta_relevance($echo = true) {
-	if ( !isset($GLOBALS['CFT_query']) )
+	if ( !class_exists('CFT_query') )
 		return false;
 
-	return $GLOBALS['CFT_query']->meta_relevance($echo);
+	return CFT_query::meta_relevance($echo);
 }
 
 /**
@@ -65,7 +65,7 @@ function meta_relevance($echo = true) {
  * $key => $value
  */
 function get_meta_taxonomies() {
-	return $GLOBALS['CFT_core']->map;
+	return CFT_core::$map;
 }
 
 /**
