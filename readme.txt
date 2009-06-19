@@ -4,7 +4,7 @@ Donate link: http://scribu.net/wordpress
 Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.5
 Tested up to: 2.8
-Stable tag: trunk
+Stable tag: 1.2.2
 
 Use custom fields as ad-hoc taxonomies.
 
