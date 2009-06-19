@@ -222,27 +222,30 @@ class settingsCFT extends scbBoxesPage
 
 	function settings_box()
 	{
+		echo $this->css_wrap(".url {font-family: 'Courier'; font-size: 110%}");
+
 		$rows = array(
 			array(
 				'type' => 'checkbox',
 				'names' => 'relevance',
-				'desc' => 'Show posts that don\'t match all key=value pairs (for multiple matches)'
+				'desc' => "Show posts that don't match all <span class='url'>key=value</span> pairs"
 			),
 			array(
 				'type' => 'checkbox',
 				'names' => 'rank_by_order',
-				'desc' => 'Additionally, consider the order of key=value pairs when ordering posts'
+				'desc' => 'Consider the order of key=value pairs when ordering posts',
+				'extra' => 'style="margin-left:2em"'
 			),
 			array(
 				'type' => 'checkbox',
 				'names' => 'allow_and',
-				'desc' => "Allow key=value1+value2 (value1 AND value2) queries
-							<br><strong>Note</strong>: A '+' in the URL is equivalent to a <em>space</em>!"
+				'desc' => "Allow <span class='url'>key=value1+value2</span> (value1 AND value2) queries
+							<br><strong style='margin-left:2em; line-height: 2'>Note</strong>: A '+' in the URL is equivalent to a <em>space</em>!"
 			),
 			array(
 				'type' => 'checkbox',
 				'names' => 'allow_or',
-				'desc' => 'Allow key=value1,value2 (value1 OR value2) queries'
+				'desc' => "Allow <span class='url'>key=value1,value2</span> (value1 OR value2) queries"
 			)
 		);
 
