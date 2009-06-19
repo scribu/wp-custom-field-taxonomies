@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.2.2
+Version: 1.3a
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -48,7 +48,7 @@ abstract class CFT_core
 			return false;
 
 		require_once dirname(__FILE__) . '/query.php';
-		CFT_query::init(self::$query_vars, self::$options->get());
+		CFT_query::init(self::$query_vars);
 
 		// Set ajax response
 		add_action('init', array(__CLASS__, 'ajax_meta_search'));
@@ -348,7 +348,9 @@ function cft_init()
 	$options = new scbOptions('cf_taxonomies', __FILE__, array(
 		'map' => '',
 		'relevance' => true,
-		'rank_by_order' => false
+		'rank_by_order' => false,
+		'allow_and' => false,
+		'allow_or' => false,
 	));
 
 	CFT_core::init($options);
@@ -363,6 +365,16 @@ function cft_init()
 
 	// DEBUG
 	if ( CFT_DEBUG === true )
-		add_action('wp_footer', create_function('', 'print_r($GLOBALS["wp_query"]->request);'));
+		add_action('wp_footer', 'cft_debug');
+		
+}
+
+function cft_debug()
+{
+	$query = $GLOBALS["wp_query"]->request;
+	foreach (array('FROM', 'JOIN', 'WHERE', 'AND', 'LIMIT', 'GROUP', 'ORDER', "\tWHEN", 'END') as $c)
+		$query = str_replace(trim($c), "\n".$c, $query);
+
+	echo "<pre style='text-align:left; font-size: 12px'>" . trim($query) . "</pre>";
 }
 

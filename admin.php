@@ -211,10 +211,11 @@ class settingsCFT extends scbBoxesPage
 		if ( 'Save settings' != $_POST['action'] )
 			return;
 
-		$this->options->update_part(array(
-			'relevance' => (bool) $_POST['relevance'],
-			'rank_by_order' => (bool) $_POST['rank_by_order']
-		));
+		$new_opts = array();
+		foreach( array('relevance', 'rank_by_order', 'allow_and', 'allow_or') as $key )
+			$new_opts[$key] = (bool) $_POST[$key];
+
+		$this->options->update_part($new_opts);
 
 		$this->admin_msg("Settings <strong>saved</strong>.");
 	}
@@ -231,6 +232,17 @@ class settingsCFT extends scbBoxesPage
 				'type' => 'checkbox',
 				'names' => 'rank_by_order',
 				'desc' => 'Additionally, consider the order of key=value pairs when ordering posts'
+			),
+			array(
+				'type' => 'checkbox',
+				'names' => 'allow_and',
+				'desc' => "Allow key=value1+value2 (value1 AND value2) queries
+							<br><strong>Note</strong>: A '+' in the URL is equivalent to a <em>space</em>!"
+			),
+			array(
+				'type' => 'checkbox',
+				'names' => 'allow_or',
+				'desc' => 'Allow key=value1,value2 (value1 OR value2) queries'
 			)
 		);
 

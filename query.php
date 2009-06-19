@@ -2,15 +2,13 @@
 
 abstract class CFT_query 
 {
-	static $query_vars;
-	static $options;
+	private static $query_vars;
 	private static $filters;
 	private static $penalties;
 
-	static function init($query_vars, $options)
+	static function init($query_vars)
 	{
 		self::$query_vars = $query_vars;
-		self::$options = $options;
 
 		// Set filters		
 		self::$filters = array(
@@ -78,19 +76,64 @@ abstract class CFT_query
 			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
 		}
 
-		// Build CASE clauses
+		// Parse query_vars
+		$case = $and = $or = array();
+		
 		foreach ( self::$query_vars as $key => $value )
-			if ( empty($value) )
-				$clauses[] = $wpdb->prepare("WHEN '%s' THEN meta_value IS NOT NULL", $key);
-			elseif ( FALSE === strpos($value, '*') )
-				$clauses[] = $wpdb->prepare("WHEN '%s' THEN meta_value = '%s'", $key, $value);
-			else {
-				$value = str_replace('*', '%', $value);
-				$clauses[] = $wpdb->prepare("WHEN '%s' THEN meta_value LIKE('%s')", $key, $value);
-			}
-		$clauses = implode("\n", $clauses);
+		{
+			$clause = "WHEN '$key' THEN meta_value ";
 
-		return $where . " AND CASE meta_key {$clauses} END";
+			if ( empty($value) )
+			{
+				$case[] = $clause . "IS NOT NULL";
+			}
+			elseif ( CFT_core::$options->allow_and && FALSE !== strpos($value, ' ') )
+			{
+				$and[$key] = explode(' ', $value);
+			}
+			elseif ( CFT_core::$options->allow_or && FALSE !== strpos($value, ',') )
+			{
+				$value = self::array_to_sql(explode(',', $value));
+				$case[] = $clause . "IN ($value)";
+			}
+			elseif ( FALSE !== strpos($value, '*') )
+			{
+				$value = str_replace('*', '%', $value);
+				$case[] = $clause . "LIKE('$value')";
+			}
+			else
+				$case[] = $clause . "= '$value'";
+		}
+
+		// CASE SQL
+		$case = " AND CASE meta_key " . implode("\n", $case) . " END";
+
+		// AND SQL
+		foreach ( $and as $key => $clause )
+		{
+			$count = count($clause);
+
+			$clause = self::array_to_sql($clause);
+
+			$and_sql .= " AND {$wpdb->posts}.ID IN (
+				SELECT post_id
+				FROM {$wpdb->postmeta}
+				WHERE meta_key = '$key'
+				AND meta_value IN ($clause)
+				GROUP BY post_id
+				HAVING COUNT(*) >= $count
+			)";
+		}
+
+		return $where . $case . $and_sql;
+	}
+
+	private static function array_to_sql($values)
+	{
+		foreach ( $values as &$val )
+			$val = "'" . trim($val) . "'";
+
+		return implode(',', $values);
 	}
 
 	static function posts_groupby($groupby)
@@ -98,7 +141,7 @@ abstract class CFT_query
 		global $wpdb;
 
 		// Set having
-		if ( self::$options['relevance'] )
+		if ( CFT_core::$options->relevance )
 			$having = ' HAVING COUNT(*) > 0';
 		else
 			$having = ' HAVING COUNT(*) = ' . count(self::$query_vars);
@@ -126,7 +169,7 @@ abstract class CFT_query
 	{
 		self::remove_filters();
 
-		if ( ! self::$options['rank_by_order'] )
+		if ( ! CFT_core::$options->rank_by_order )
 			return $posts;
 
 		self::set_penalties();
