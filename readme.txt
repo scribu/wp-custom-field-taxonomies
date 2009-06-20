@@ -77,3 +77,46 @@ This is probably because you have `query_posts()` somewhere in there. An easy wo
 
 1. The settings page
 
+== Changelog ==
+
+= 1.2.2 =
+* bugfix
+
+= 1.2.1 =
+* better admin page
+
+= 1.2 =
+* revamped Admin Page
+* option to sort posts by key=value order
+* doesn't mess with other loops except the main WP loop
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-2.html)
+
+= 1.1 =
+* wildcard support
+* option to show posts that don't match all key=value pairs
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-1.html)
+
+= 1.0 =
+* several bugfixes and enhancements
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-0.html)
+
+= 0.9 =
+* meta search box
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-0-9.html)
+
+= 0.8 =
+* custom field management
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-0-8.html)
+
+= 0.7 =
+* multiple key=value pairs
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-0-7.html)
+
+= 0.6 =
+* relative URLs
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-0-6.html)
+
+= 0.5 =
+* initial release
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-0-5.html)
+
