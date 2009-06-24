@@ -16,10 +16,14 @@ jQuery(document).ready(function()
 	bind_suggest('[name=default_value]', 'value');
 
 	// Delete button
-	jQuery('.delete').click(function() {
-		jQuery(this).parents('tr').fadeOut('normal', function() {
-			jQuery(this).remove();
-		});
+	jQuery('#taxonomies').click(function(ev) {
+		$el = jQuery(ev.target);
+
+		if ( $el.is('a') )
+			// Delete row
+			$el.parents('tr').fadeOut('normal', function() {
+				jQuery(this).remove();
+			});
 	});
 
 	// Add row button
