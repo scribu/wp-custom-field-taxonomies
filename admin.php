@@ -264,7 +264,7 @@ class settingsCFT extends scbBoxesPage
 
 		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
 
-		foreach ( $_POST['key'] as $i => $key )
+		foreach ( (array) $_POST['key'] as $i => $key )
 		{
 			$key = sanitize_title_with_dashes($key);
 
