@@ -6,7 +6,9 @@
 
 // Check if the current page is a meta page.
 function is_meta() {
-	return ! empty(CFT_core::$query_vars);
+	global $wp_query;
+
+	return (bool) $wp_query->is_meta;
 }
 
 /**

@@ -167,13 +167,15 @@ abstract class CFT_query
 	// Sorts posts using penalties
 	static function rank_by_order($posts)
 	{
+		// Important
 		self::remove_filters();
+		self::set_query_flags();
 
 		if ( ! CFT_core::$options->rank_by_order )
 			return $posts;
 
 		self::set_penalties();
-		
+
 		foreach ( $posts as $post )
 		{
 			// Get relevant keys
@@ -188,6 +190,24 @@ abstract class CFT_query
 		usort($posts, array(__CLASS__, 'cmp_relevance'));
 
 		return $posts;
+	}
+
+	function set_query_flags()
+	{
+		global $wp_query;
+
+/*
+		$wp_query->init_query_flags();
+
+		if ( get_query_var('paged') )
+			$wp_query->is_paged = true;
+*/
+
+		$wp_query->is_singular = false;
+		$wp_query->is_single = false;
+
+		$wp_query->is_archive = true;
+		$wp_query->is_meta = true;
 	}
 
 	static function cmp_relevance($postA, $postB)
