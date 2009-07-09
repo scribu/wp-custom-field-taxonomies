@@ -215,6 +215,9 @@ class settingsCFT extends scbBoxesPage
 		foreach( array('relevance', 'rank_by_order', 'allow_and', 'allow_or') as $key )
 			$new_opts[$key] = (bool) $_POST[$key];
 
+		if ( ! $new_opts['relevance'] )
+			$new_opts['rank_by_order'] = false;
+
 		$this->options->update_part($new_opts);
 
 		$this->admin_msg("Settings <strong>saved</strong>.");
@@ -227,14 +230,8 @@ class settingsCFT extends scbBoxesPage
 		$rows = array(
 			array(
 				'type' => 'checkbox',
-				'names' => 'relevance',
-				'desc' => "Show posts that don't match all <span class='url'>key=value</span> pairs"
-			),
-			array(
-				'type' => 'checkbox',
-				'names' => 'rank_by_order',
-				'desc' => 'Consider the order of key=value pairs when ordering posts',
-				'extra' => 'style="margin-left:2em"'
+				'names' => 'allow_or',
+				'desc' => "Allow <span class='url'>key=value1,value2</span> (value1 OR value2) queries"
 			),
 			array(
 				'type' => 'checkbox',
@@ -244,9 +241,15 @@ class settingsCFT extends scbBoxesPage
 			),
 			array(
 				'type' => 'checkbox',
-				'names' => 'allow_or',
-				'desc' => "Allow <span class='url'>key=value1,value2</span> (value1 OR value2) queries"
-			)
+				'names' => 'relevance',
+				'desc' => "Show posts that don't match all <span class='url'>key=value</span> pairs"
+			),
+			array(
+				'type' => 'checkbox',
+				'names' => 'rank_by_order',
+				'desc' => 'Consider the order of key=value pairs when ordering posts',
+				'extra' => 'style="margin-left:2em"'
+			),
 		);
 
 		$output = '';

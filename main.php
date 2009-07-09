@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.3a
+Version: 1.3a1
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -24,17 +24,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-define('CFT_AJAX_KEY', 'ajax-meta-search');
-define('CFT_AJAX_URL', get_bloginfo('url') . '?' . CFT_AJAX_KEY . '=');
-define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url = '" . CFT_AJAX_URL . "';</script>");
-
-// Init
-
-cft_init();
-function cft_init()
+_cft_init();
+function _cft_init()
 {
 	// Load scbFramework
-	require_once(dirname(__FILE__) . '/inc/scb/load.php');
+	require_once dirname(__FILE__) . '/inc/scb/load.php';
 
 	$options = new scbOptions('cf_taxonomies', __FILE__, array(
 		'map' => '',
@@ -45,6 +39,7 @@ function cft_init()
 	));
 
 	CFT_core::init($options);
+	CFT_filter_box::init();
 
 	include_once dirname(__FILE__) . '/template-tags.php';
 
@@ -56,8 +51,7 @@ function cft_init()
 
 	// DEBUG
 	if ( CFT_DEBUG === true )
-		add_action('wp_footer', 'cft_debug');
-		
+		add_action('shutdown', array('CFT_core', 'debug'));
 }
 
 abstract class CFT_core
@@ -81,9 +75,6 @@ abstract class CFT_core
 
 		require_once dirname(__FILE__) . '/query.php';
 		CFT_query::init(self::$query_vars);
-
-		// Set ajax response
-		add_action('init', array(__CLASS__, 'ajax_meta_search'));
 
 		// Customize template and title
 		add_action('template_redirect', array(__CLASS__, 'add_template'), 999);
@@ -210,82 +201,14 @@ abstract class CFT_core
 		echo $return;
 	}
 
-	static function filter_box($exclude = array() )
-	{
-		add_action('wp_footer', array(__CLASS__, 'filter_box_scripts'));
-
-		// Generate select
-		$select = '<option />';
-		foreach ( self::$map as $key => $name )
-			if ( ! in_array($key, $exclude) )
-				$select .= sprintf('<option value="%s">%s</option>', $key, $name);
-		$select = "<select>{$select}</select>\n";
-?>
-<form class="meta-filter-box" method='GET' action="<?php bloginfo('url'); ?>">
-  <fieldset>
-	<table class="meta-filters">
-	</table>
-	<div class="select-meta-filters">
-		Add filter <?php echo $select; ?>
-	</div>
-	<input name="action" type="submit" value="Go" />
-  </fieldset>
-</form>
-<?php
-	}
-
 // Helper methods
 
-	static function filter_box_scripts()
-	{
-		global $wp_scripts;
-
-		$url = self::get_plugin_url() . '/inc';
-		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
-
-		// CSS
-		$scripts[] = "<style type='text/css'>@import url('$url/filter-box.css');</style>";
-
-		// Dependencies
-		foreach ( array('jquery', 'suggest') as $name )
-			if ( ! @in_array($name, $wp_scripts->done) )
-				$scripts[] = sprintf($scriptf, get_option('siteurl') . "/wp-includes/js/jquery/$name.js");
-
-		// Box script
-		$scripts[] = CFT_AJAX_URL_JS;
-		$scripts[] = sprintf($scriptf, "$url/filter-box.js");
-
-		echo implode("\n", $scripts);
-	}
-
-	private static function is_defined($key)
+	static function is_defined($key)
 	{
 		if ( ! $r = in_array($key, array_keys(self::$map)) )
 			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
 
 		return $r;
-	}
-
-	// AJAX response
-	static function ajax_meta_search()
-	{
-		if ( !isset( $_GET[CFT_AJAX_KEY] ) )
-			return;
-
-		global $wpdb;
-
-		$key = $wpdb->escape(trim($_GET[CFT_AJAX_KEY]));
-		$hint = $wpdb->escape(trim($_GET['q']));
-
-		if ( ! self::is_defined($key) )
-			die(-1);
-
-		@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
-
-		foreach ( self::get_meta_values($key, NULL, 10, $hint) as $value )
-			echo $value->name . "\n";
-
-		die;
 	}
 
 	static function get_meta_values($key, $auth_id = NULL, $limit = NULL, $hint = NULL)
@@ -347,7 +270,7 @@ abstract class CFT_core
 		die;
 	}
 
-	private static function get_current_url()
+	static function get_current_url()
 	{
 		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
 
@@ -359,22 +282,108 @@ abstract class CFT_core
 		return $pageURL;
 	}
 
-	private static function get_plugin_url()
+	static function debug()
 	{
-		// < WP 2.6
-		if ( !function_exists('plugins_url') )
-			return get_option('siteurl') . '/wp-content/plugins/' . plugin_basename(dirname(__FILE__));
+		$query = $GLOBALS["wp_query"]->request;
+		foreach (array('FROM', 'JOIN', 'WHERE', 'AND', 'LIMIT', 'GROUP', 'ORDER', "\tWHEN", 'END') as $c)
+			$query = str_replace(trim($c), "\n".$c, $query);
 
-		return plugins_url(plugin_basename(dirname(__FILE__)));
+		echo "<pre style='text-align:left; font-size: 12px'>" . trim($query) . "</pre>";
 	}
 }
 
-function cft_debug()
-{
-	$query = $GLOBALS["wp_query"]->request;
-	foreach (array('FROM', 'JOIN', 'WHERE', 'AND', 'LIMIT', 'GROUP', 'ORDER', "\tWHEN", 'END') as $c)
-		$query = str_replace(trim($c), "\n".$c, $query);
 
-	echo "<pre style='text-align:left; font-size: 12px'>" . trim($query) . "</pre>";
+define('CFT_AJAX_KEY', 'ajax-meta-search');
+define('CFT_AJAX_URL', get_bloginfo('url') . '?' . CFT_AJAX_KEY . '=');
+define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url = '" . CFT_AJAX_URL . "';</script>");
+
+class CFT_filter_box
+{
+	static function init()
+	{
+		add_action('init', array(__CLASS__, 'ajax_meta_search'));
+	}
+
+	static function filter_box($exclude = array() )
+	{
+		add_action('wp_footer', array(__CLASS__, 'scripts'));
+
+		$map = CFT_core::$map;
+
+		foreach ( $exclude as $key )
+			unset($map[$key]);
+
+		$select = scbForms::input(array(
+			'type' => 'select',
+			'name' => '',
+			'value' => $map
+		));
+?>
+<form class="meta-filter-box" method='GET' action="<?php bloginfo('url'); ?>">
+  <fieldset>
+	<table class="meta-filters"></table>
+	<div class="select-meta-filters">
+		Add filter <?php echo $select; ?>
+	</div>
+	<input name="action" type="submit" value="Go" />
+  </fieldset>
+</form>
+<?php
+	}
+
+	static function scripts()
+	{
+		global $wp_scripts;
+
+		$url = plugins_dir_url(__FILE__) . 'inc';
+		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
+
+		// CSS
+		$scripts[] = "<style type='text/css'>@import url('$url/filter-box.css');</style>";
+
+		// Dependencies
+		foreach ( array('jquery', 'suggest') as $name )
+			if ( ! @in_array($name, $wp_scripts->done) )
+				$scripts[] = sprintf($scriptf, get_option('siteurl') . "/wp-includes/js/jquery/$name.js");
+
+		// Box script
+		$scripts[] = CFT_AJAX_URL_JS;
+		$scripts[] = sprintf($scriptf, "$url/filter-box.js");
+
+		echo implode("\n", $scripts);
+	}
+
+	static function ajax_meta_search()
+	{
+		if ( !isset( $_GET[CFT_AJAX_KEY] ) )
+			return;
+
+		global $wpdb;
+
+		$key = $wpdb->escape(trim($_GET[CFT_AJAX_KEY]));
+		$hint = $wpdb->escape(trim($_GET['q']));
+
+		if ( ! CFT_core::is_defined($key) )
+			die(-1);
+
+		@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
+
+		foreach ( CFT_core::get_meta_values($key, NULL, 10, $hint) as $value )
+			echo $value->name . "\n";
+
+		die;
+	}
 }
+
+// WP < 2.8
+if ( !function_exists('plugins_dir_url') ) :
+function plugins_dir_url($file) 
+{
+	// WP < 2.6
+	if ( !function_exists('plugins_url') )
+		return trailingslashit(get_option('siteurl') . '/wp-content/plugins/' . plugin_basename($file));
+
+	return trailingslashit(plugins_url(plugin_basename(dirname($file))));
+}
+endif;
 

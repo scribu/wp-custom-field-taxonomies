@@ -48,7 +48,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
  * $exclude: an array of meta keys to be excluded
  */
 function meta_filter_box($exclude = array()) {
-	return CFT_core::filter_box($exclude);
+	return CFT_filter_box::filter_box($exclude);
 }
 
 /** Display a percent relevance for each post
