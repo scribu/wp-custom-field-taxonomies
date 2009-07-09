@@ -4,7 +4,7 @@ Donate link: http://scribu.net/wordpress
 Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.5
 Tested up to: 2.8
-Stable tag: 1.2.2
+Stable tag: trunk
 
 Use custom fields as ad-hoc taxonomies.
 
@@ -79,11 +79,9 @@ This is probably because you have `query_posts()` somewhere in there. An easy wo
 
 == Changelog ==
 
-= 1.2.2 =
-* bugfix
-
-= 1.2.1 =
-* better admin page
+= 1.3 =
+* added AND, OR queries
+* fixed compatibility with Smarter Navigation
 
 = 1.2 =
 * revamped Admin Page
