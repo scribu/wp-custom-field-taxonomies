@@ -52,6 +52,9 @@ abstract class CFT_query
 	{
 		global $wpdb;
 
+		if ( ! CFT_core::$options->relevance )
+			return $fields;
+
 		$nr = count(self::$query_vars);
 
 		return $fields . ", COUNT(*) * 100 / {$nr} AS meta_rank";
@@ -70,7 +73,7 @@ abstract class CFT_query
 
 		if ( is_singular() )
 		{
-			CFT_core::make_canonical();
+//			CFT_core::make_canonical();
 
 			// Get posts instead of front page
 			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
@@ -161,6 +164,9 @@ abstract class CFT_query
 
 	static function posts_orderby($orderby)
 	{
+		if ( ! CFT_core::$options->relevance )
+			return $orderby;
+
 		return "meta_rank DESC, " . $orderby;
 	}
 

@@ -28,6 +28,38 @@ define('CFT_AJAX_KEY', 'ajax-meta-search');
 define('CFT_AJAX_URL', get_bloginfo('url') . '?' . CFT_AJAX_KEY . '=');
 define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url = '" . CFT_AJAX_URL . "';</script>");
 
+// Init
+
+cft_init();
+function cft_init()
+{
+	// Load scbFramework
+	require_once(dirname(__FILE__) . '/inc/scb/load.php');
+
+	$options = new scbOptions('cf_taxonomies', __FILE__, array(
+		'map' => '',
+		'relevance' => true,
+		'rank_by_order' => false,
+		'allow_and' => false,
+		'allow_or' => false,
+	));
+
+	CFT_core::init($options);
+
+	include_once dirname(__FILE__) . '/template-tags.php';
+
+	if ( is_admin() )
+	{
+		require_once dirname(__FILE__) . '/admin.php';
+		new settingsCFT(__FILE__, $options, CFT_core::make_map());
+	}
+
+	// DEBUG
+	if ( CFT_DEBUG === true )
+		add_action('wp_footer', 'cft_debug');
+		
+}
+
 abstract class CFT_core
 {
 	static $options;
@@ -256,7 +288,7 @@ abstract class CFT_core
 		die;
 	}
 
-	private static function get_meta_values($key, $auth_id = NULL, $limit = NULL, $hint = NULL)
+	static function get_meta_values($key, $auth_id = NULL, $limit = NULL, $hint = NULL)
 	{
 		global $wpdb;
 
@@ -335,38 +367,6 @@ abstract class CFT_core
 
 		return plugins_url(plugin_basename(dirname(__FILE__)));
 	}
-}
-
-// Init
-
-cft_init();
-function cft_init()
-{
-	// Load scbFramework
-	require_once(dirname(__FILE__) . '/inc/scb/load.php');
-
-	$options = new scbOptions('cf_taxonomies', __FILE__, array(
-		'map' => '',
-		'relevance' => true,
-		'rank_by_order' => false,
-		'allow_and' => false,
-		'allow_or' => false,
-	));
-
-	CFT_core::init($options);
-
-	include_once dirname(__FILE__) . '/template-tags.php';
-
-	if ( is_admin() )
-	{
-		require_once dirname(__FILE__) . '/admin.php';
-		new settingsCFT(__FILE__, $options, CFT_core::make_map());
-	}
-
-	// DEBUG
-	if ( CFT_DEBUG === true )
-		add_action('wp_footer', 'cft_debug');
-		
 }
 
 function cft_debug()
