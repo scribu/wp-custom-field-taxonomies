@@ -56,7 +56,7 @@ function _cft_init()
 
 abstract class CFT_core
 {
-	const ver = '1.3';
+	const ver = '1.3.1';
 	static $options;
 	static $map;
 	static $query_vars;
