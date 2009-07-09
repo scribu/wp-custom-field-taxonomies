@@ -51,16 +51,15 @@ function _cft_init()
 
 	// DEBUG
 	if ( CFT_DEBUG === true )
-		add_action('shutdown', array('CFT_core', 'debug'));
+		add_action('wp_footer', array('CFT_core', 'debug'));
 }
 
 abstract class CFT_core
 {
+	const ver = '1.3';
 	static $options;
 	static $map;
 	static $query_vars;
-
-// Core methods
 
 	static function init($options)
 	{
@@ -293,12 +292,10 @@ abstract class CFT_core
 }
 
 
-define('CFT_AJAX_KEY', 'ajax-meta-search');
-define('CFT_AJAX_URL', get_bloginfo('url') . '?' . CFT_AJAX_KEY . '=');
-define('CFT_AJAX_URL_JS', "<script type='text/javascript'>window.cft_suggest_url = '" . CFT_AJAX_URL . "';</script>");
-
 class CFT_filter_box
 {
+	const ajax_key = 'ajax-meta-search';
+
 	static function init()
 	{
 		add_action('init', array(__CLASS__, 'ajax_meta_search'));
@@ -346,8 +343,9 @@ class CFT_filter_box
 			if ( ! @in_array($name, $wp_scripts->done) )
 				$scripts[] = sprintf($scriptf, get_option('siteurl') . "/wp-includes/js/jquery/$name.js");
 
-		// Box script
-		$scripts[] = CFT_AJAX_URL_JS;
+		$ajax_url = trailingslashit(get_bloginfo('url')) . '?' . self::ajax_key . '=';
+
+		$scripts[] = "<script type='text/javascript'>window.cft_suggest_url = '" . $ajax_url . "';</script>";
 		$scripts[] = sprintf($scriptf, "$url/filter-box.js");
 
 		echo implode("\n", $scripts);
@@ -355,12 +353,12 @@ class CFT_filter_box
 
 	static function ajax_meta_search()
 	{
-		if ( !isset( $_GET[CFT_AJAX_KEY] ) )
+		if ( !isset( $_GET[self::ajax_key] ) )
 			return;
 
 		global $wpdb;
 
-		$key = $wpdb->escape(trim($_GET[CFT_AJAX_KEY]));
+		$key = $wpdb->escape(trim($_GET[self::ajax_key]));
 		$hint = $wpdb->escape(trim($_GET['q']));
 
 		if ( ! CFT_core::is_defined($key) )
