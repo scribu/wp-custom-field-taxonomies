@@ -88,7 +88,7 @@ abstract class CFT_query
 
 			if ( empty($value) )
 			{
-				$case[] = $clause . "IS NOT NULL";
+				$case[$key] = $clause . "IS NOT NULL";
 			}
 			elseif ( CFT_core::$options->allow_and && FALSE !== strpos($value, ' ') )
 			{
@@ -97,18 +97,20 @@ abstract class CFT_query
 			elseif ( CFT_core::$options->allow_or && FALSE !== strpos($value, ',') )
 			{
 				$value = self::array_to_sql(explode(',', $value));
-				$case[] = $clause . "IN ($value)";
+				$case[$key] = $clause . "IN ($value)";
 			}
 			elseif ( FALSE !== strpos($value, '*') )
 			{
 				$value = str_replace('*', '%', $value);
-				$case[] = $clause . "LIKE('$value')";
+				$case[$key] = $clause . "LIKE('$value')";
 			}
 			else
-				$case[] = $clause . "= '$value'";
+				$case[$key] = $clause . "= '$value'";
 		}
 
 		// CASE SQL
+		$case = apply_filters('cft_case_clause', $case, self::$query_vars);
+
 		$case = " AND CASE meta_key " . implode("\n", $case) . " END";
 
 		// AND SQL

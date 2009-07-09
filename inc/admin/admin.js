@@ -34,7 +34,7 @@ jQuery(document).ready(function($) {
 
 	//Table
 	(function() {
-		var $table = $('#taxonomies');
+		var $table = $('#taxonomies table');
 		var $row = $table.find('tbody tr:first').clone()
 			.find(':text').val('').end();
 

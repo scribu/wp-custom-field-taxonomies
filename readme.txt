@@ -79,6 +79,10 @@ This is probably because you have `query_posts()` somewhere in there. An easy wo
 
 == Changelog ==
 
+= 1.3.1 =
+* fixed "Save taxonomies" button
+* added two hooks
+
 = 1.3 =
 * added AND, OR queries
 * fixed compatibility with Smarter Navigation

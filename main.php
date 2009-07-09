@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.3
+Version: 1.3.1
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -102,7 +102,9 @@ abstract class CFT_core
 		foreach ( $_GET as $key => $value )
 			if ( in_array($key, $keys) )
 				self::$query_vars[$key] = wp_specialchars($value);
-				
+
+		self::$query_vars = apply_filters('cft_query_vars', self::$query_vars, self::$map);
+
 		return ! empty(self::$query_vars);
 	}
 
