@@ -355,7 +355,7 @@ class settingsCFT extends scbBoxesPage
 			AND meta_key NOT LIKE ('\_%')
 		");
 
-		echo join($values, "\n");
+		echo implode("\n", $values);
 		die;
 	}
 

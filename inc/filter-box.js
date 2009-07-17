@@ -1,4 +1,4 @@
-jQuery(function($) {
+(function($) {
 	var filter_box = function(el) {
 		var self = this;
 
@@ -58,4 +58,4 @@ jQuery(function($) {
 	};
 
 	$('.meta-filter-box').each(function() { new filter_box(this); });
-});
+})(jQuery);

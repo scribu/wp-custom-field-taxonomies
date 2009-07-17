@@ -12,34 +12,34 @@ Use custom fields as ad-hoc taxonomies.
 With this powerfull plugin you can enhance the capabilities of your site by making some of your custom fields act like tags:
 
 = Sort posts in new ways =
-You can have URLs as simple as
+You can have queries as simple as
 
 http://yoursite.com/?foo=bar
 (displays posts which have a meta key 'foo' with the value 'bar')
 
 and as complex as
 
-http://yoursite.com/?s=anything&key1=valueA&key2=valueB...
-(posts that match any regular WordPress query AND match some or all key=value pairs)
+http://yoursite.com/?s=search_term&key1=valueA&key2=valueB...
+(posts that match any regular WordPress query *and* match some or all key=value pairs)
+
+= Easily choose the keys you will use =
+In the settings page you can select which custom fields to register as meta taxonomies. (This is mandatory)
 
 = Use built in template tags =
 * `meta_filter_box()` generates an advanced meta search box
 * `meta_cloud()` displays all the tags for a selected taxonomy (can also be restricted by author)
-* `get_linked_meta()` works just like get_post_meta() with the difference that the values are links, not text
+* `the_meta_title()` outputs a nice title for the search results page
 * `all_meta_info()` displays all the meta values for each post
-* `meta_relevance()` displays a percentage that indicates how many key=value pair matches a post has
+* `get_linked_meta()` works just like get_post_meta() with the difference that the values are links, not text
 * `get_meta_taxonomies()` returns all defined taxonomies as an associative array
-* `get_meta_title()` return the current key and value to be used as the page title
 * `is_meta()` is a conditional tag that indicates if you're on a meta taxonomy page
+* `meta_relevance()` displays a percentage that indicates how many key=value pair matches a post has
 
 You can find out more about the available template tags by looking in the **template-tags.php** file
 
 = Use the new theme template =
 If you want post sorted by metadata to be displayed differently you can:
-Copy meta.php from the plugin directory to your current theme directory. You can leave it as is or integrate it into your theme.
-
-= Easily choose the keys you will use =
-In the settings page you can select which custom fields to register as meta taxonomies.
+Copy meta.php from the plugin directory to your current theme directory. You can modify it to fit your theme, if necessary.
 
 = Manage custom fields =
 You can search and replace through both custom field keys and custom field values from the same settings page.
@@ -57,7 +57,7 @@ You can remove duplicate custom field pairs (key = value) in posts with the clic
 = Example =
 Say you have this meta taxonomy defined:
 
-mood - Mood
+mood - Current Mood
 
 If you want to display linked values from that field for each post, add this inside The Loop:
 
@@ -65,7 +65,7 @@ If you want to display linked values from that field for each post, add this ins
 
 This will output:
 
-Mood: [happy](http://example.com/?mood=happy)
+Current Mood: [happy](http://example.com/?mood=happy)
 
 == Frequently Asked Questions ==
 = Why isn't it working with my theme? =
@@ -78,6 +78,9 @@ This is probably because you have `query_posts()` somewhere in there. An easy wo
 1. The settings page
 
 == Changelog ==
+
+= 1.3.2 =
+* fixed meta_cloud() args
 
 = 1.3.1 =
 * fixed "Save taxonomies" button

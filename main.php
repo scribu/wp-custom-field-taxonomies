@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.3.1
+Version: 1.3.2
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -28,7 +28,7 @@ _cft_init();
 function _cft_init()
 {
 	// Load scbFramework
-	require_once dirname(__FILE__) . '/inc/scb/load.php';
+	require_once dirname(__FILE__) . '/scb/load.php';
 
 	$options = new scbOptions('cf_taxonomies', __FILE__, array(
 		'map' => '',
@@ -132,74 +132,17 @@ abstract class CFT_core
 
 		return implode('', $newtitle);
 	}
-
-// Template tags
-
+	
 	static function get_meta_title($format = '%name%: %value%', $between = ' and ')
 	{
-		foreach ( self::$query_vars as $key => $value )
+		foreach ( CFT_core::$query_vars as $key => $value )
 		{
-			$name = self::$map[$key];
+			$name = CFT_core::$map[$key];
 
 			$title[] = str_replace(array('%name%', '%value%'), array($name, stripslashes($value)), $format);
 		}
 
 		return implode($between, $title);
-	}
-
-	static function get_linked_meta($id, $key, $glue = ', ', $relative = false)
-	{
-		if ( ! self::is_defined($key) )
-			return false;
-
-		$values = get_post_meta($id, $key);
-
-		if ( !$values )
-			return false;
-
-		foreach ( $values as $i => $value )
-			$values[$i] = sprintf('<a href="%s">%s</a>', self::get_meta_url($key, $value, $relative), $value);
-
-		if ( count($values) > 1 )
-			$content = implode($glue, $values);
-		else
-			$content = reset($values);
-
-		return apply_filters('get_linked_meta', $content, $id, $key, $glue);
-	}
-
-	static function meta_cloud($metaArgs, $cloudArgs = '')
-	{
-		extract(wp_parse_args($metaArgs, array(
-			'key' => NULL,
-			'auth_id' => NULL,
-			'relative' => false
-		)));
-
-		if ( ! self::is_defined($key) )
-			return false;
-
-		$cloudArgs = wp_parse_args($cloudArgs, array(
-			'smallest' => 8, 'largest' => 22, 'unit' => 'pt', 'number' => 45,
-			'format' => 'flat', 'orderby' => 'name', 'order' => 'ASC',
-			'exclude' => '', 'include' => '', 'link' => 'view'
-		));
-
-		$tags = self::get_meta_values($key, $auth_id, $cloudArgs['number']);
-
-		if ( empty($tags) )
-			return false;
-
-		// Add links
-		foreach ( $tags as $i => $tag )
-			$tags[$i]->link = self::get_meta_url($key, $tag->name, $relative);
-
-		$return = wp_generate_tag_cloud($tags, $cloudArgs);
-
-		if ( 'array' == $cloudArgs['format'] )
-			return $return;
-
-		echo $return;
 	}
 
 // Helper methods
@@ -212,20 +155,44 @@ abstract class CFT_core
 		return $r;
 	}
 
-	static function get_meta_values($key, $auth_id = NULL, $limit = NULL, $hint = NULL)
+	static function get_meta_values($key, $args = '')
 	{
+		extract(wp_parse_args($args, array(
+			'auth_id' => 0,
+			'hint' => '',
+		)), EXTR_SKIP);
+
 		global $wpdb;
 
 		$where = "AND m.meta_key = '$key'";
 
-		if ( isset($hint) )
+		if ( !empty($hint) )
 			$where .= " AND m.meta_value LIKE ('%{$hint}%')";
 
-		if ( isset($auth_id) )
-			$where .= " AND p.post_author = " . absint($auth_id);
+		// Author
+		$auth_id = absint($auth_id);
+		if ( $auth_id != 0 )
+			$where .= " AND p.post_author = " . $auth_id;
 
-		if ( isset($limit) )
-			$limit_clause = 'LIMIT 0, ' . absint($limit);
+		// Limit
+		$number = absint($number);
+		if ( $number != 0 )
+			$limit_clause = 'LIMIT 0, ' . $number;
+
+		// Exclude / include
+		$exterms = self::terms_clause($exclude);
+		if ( ! empty($exterms) )
+		{
+			unset($include);
+			$where .= " AND m.meta_value NOT IN $exterms";
+		}
+
+		$interms = self::terms_clause($include);
+
+		if ( ! empty($interms) )
+			$where .= " AND m.meta_value IN $interms";
+
+		$orderby = "ORDER BY $orderby $order";
 
 		$values = $wpdb->get_results("
 			SELECT m.meta_value AS name, COUNT(m.meta_value) AS count
@@ -234,14 +201,27 @@ abstract class CFT_core
 			WHERE p.post_status = 'publish'
 			{$where}
 			GROUP BY m.meta_value
-			ORDER BY COUNT(m.meta_value) DESC
+			{$orderby}
 			{$limit_clause}
 		");
 
 		return apply_filters('cft_get_values', $values, $key, $auth_id, $limit, $hint);
 	}
 
-	private static function get_meta_url($key, $value, $relative = false)
+	private static function terms_clause($str)
+	{
+		if ( empty($str) )
+			return '';
+
+		$terms = preg_split('/[\s,]+/', $str);
+
+		foreach ( $terms as &$term )
+			$term = "'" . trim($term) . "'";
+
+		return '(' . implode(',', $terms) . ')';
+	}
+
+	static function get_meta_url($key, $value, $relative = false)
 	{
 		if ( is_singular() )
 			$relative = false;
@@ -294,47 +274,22 @@ abstract class CFT_core
 }
 
 
+// Sets up scripts and AJAX suggest
 class CFT_filter_box
 {
 	const ajax_key = 'ajax-meta-search';
 
 	static function init()
 	{
-		add_action('init', array(__CLASS__, 'ajax_meta_search'));
-	}
-
-	static function filter_box($exclude = array() )
-	{
-		add_action('wp_footer', array(__CLASS__, 'scripts'));
-
-		$map = CFT_core::$map;
-
-		foreach ( $exclude as $key )
-			unset($map[$key]);
-
-		$select = scbForms::input(array(
-			'type' => 'select',
-			'name' => '',
-			'value' => $map
-		));
-?>
-<form class="meta-filter-box" method='GET' action="<?php bloginfo('url'); ?>">
-  <fieldset>
-	<table class="meta-filters"></table>
-	<div class="select-meta-filters">
-		Add filter <?php echo $select; ?>
-	</div>
-	<input name="action" type="submit" value="Go" />
-  </fieldset>
-</form>
-<?php
+		add_action('wp_ajax_' . self::ajax_key, array(__CLASS__, 'ajax_meta_search'));
+		add_action('wp_ajax_nopriv_' . self::ajax_key, array(__CLASS__, 'ajax_meta_search'));
 	}
 
 	static function scripts()
 	{
 		global $wp_scripts;
 
-		$url = plugins_dir_url(__FILE__) . 'inc';
+		$url = plugins_dir_url(__FILE__) . 'inc/';
 		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
 
 		// CSS
@@ -343,32 +298,27 @@ class CFT_filter_box
 		// Dependencies
 		foreach ( array('jquery', 'suggest') as $name )
 			if ( ! @in_array($name, $wp_scripts->done) )
-				$scripts[] = sprintf($scriptf, get_option('siteurl') . "/wp-includes/js/jquery/$name.js");
+				$scripts[] = sprintf($scriptf, trailingslashit(get_bloginfo('url')) . "wp-includes/js/jquery/$name.js");
 
-		$ajax_url = trailingslashit(get_bloginfo('url')) . '?' . self::ajax_key . '=';
+		$ajax_url = admin_url('admin-ajax.php?action=' . self::ajax_key . '&key=');
 
 		$scripts[] = "<script type='text/javascript'>window.cft_suggest_url = '" . $ajax_url . "';</script>";
-		$scripts[] = sprintf($scriptf, "$url/filter-box.js");
+		$scripts[] = sprintf($scriptf, $url . 'filter-box.js');
 
 		echo implode("\n", $scripts);
 	}
 
 	static function ajax_meta_search()
 	{
-		if ( !isset( $_GET[self::ajax_key] ) )
-			return;
-
 		global $wpdb;
 
-		$key = $wpdb->escape(trim($_GET[self::ajax_key]));
+		$key = $wpdb->escape(trim($_GET['key']));
 		$hint = $wpdb->escape(trim($_GET['q']));
 
 		if ( ! CFT_core::is_defined($key) )
 			die(-1);
 
-		@header('Content-Type: text/html; charset=' . get_option('blog_charset'));
-
-		foreach ( CFT_core::get_meta_values($key, NULL, 10, $hint) as $value )
+		foreach ( CFT_core::get_meta_values($key, "number=10&hint=$hint") as $value )
 			echo $value->name . "\n";
 
 		die;
@@ -377,7 +327,7 @@ class CFT_filter_box
 
 // WP < 2.8
 if ( !function_exists('plugins_dir_url') ) :
-function plugins_dir_url($file) 
+function plugins_dir_url($file)
 {
 	// WP < 2.6
 	if ( !function_exists('plugins_url') )

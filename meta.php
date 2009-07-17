@@ -5,12 +5,11 @@
  */
 
 get_header();
-
 ?>
 	<div id="content" class="narrowcolumn">
 
 	<?php if (have_posts()) : ?>
-
+		<p><?php the_meta_title(); ?></p>
 		<?php while (have_posts()) : the_post(); ?>
 
 			<div <?php post_class() ?> id="post-<?php the_ID(); ?>">
