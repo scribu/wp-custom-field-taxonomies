@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.3.2
+Version: 1.3.3
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -56,7 +56,7 @@ function _cft_init()
 
 abstract class CFT_core
 {
-	const ver = '1.3.1';
+	const ver = '1.3.3';
 	static $options;
 	static $map;
 	static $query_vars;
@@ -94,7 +94,7 @@ abstract class CFT_core
 
 	private static function detect_query()
 	{
-		if ( is_admin() || empty($_GET) || empty(self::$map) )
+		if ( is_admin() || empty(self::$map) )
 			return false;
 
 		$keys = array_keys(self::$map);
@@ -160,6 +160,8 @@ abstract class CFT_core
 		extract(wp_parse_args($args, array(
 			'auth_id' => 0,
 			'hint' => '',
+			'orderby' => 'name',
+			'order' => 'ASC',
 		)), EXTR_SKIP);
 
 		global $wpdb;
@@ -289,7 +291,7 @@ class CFT_filter_box
 	{
 		global $wp_scripts;
 
-		$url = plugins_dir_url(__FILE__) . 'inc/';
+		$url = plugin_dir_url(__FILE__) . 'inc/';
 		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
 
 		// CSS
@@ -326,8 +328,8 @@ class CFT_filter_box
 }
 
 // WP < 2.8
-if ( !function_exists('plugins_dir_url') ) :
-function plugins_dir_url($file)
+if ( !function_exists('plugin_dir_url') ) :
+function plugin_dir_url($file)
 {
 	// WP < 2.6
 	if ( !function_exists('plugins_url') )

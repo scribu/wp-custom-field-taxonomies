@@ -79,6 +79,9 @@ This is probably because you have `query_posts()` somewhere in there. An easy wo
 
 == Changelog ==
 
+= 1.3.3 =
+* ajax-ed admin page
+
 = 1.3.2 =
 * fixed meta_cloud() args
 
