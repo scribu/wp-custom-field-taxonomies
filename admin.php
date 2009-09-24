@@ -182,17 +182,17 @@ class settingsCFT extends scbBoxesPage
 
 		global $wpdb;
 
-		$ids = $wpdb->get_col("
-			SELECT meta_id
-			FROM {$wpdb->postmeta}
-			GROUP BY post_id, meta_key, meta_value
-			HAVING COUNT(meta_value) > 1
-		");
-		$ids = implode(',', $ids);
+$wpdb->show_errors = true;
 
+		// MySQL doesn't allow SELECTing from the target table. Workaround is to create a temporary table
 		$count = (int) $wpdb->query("
 			DELETE FROM {$wpdb->postmeta}
-			WHERE meta_id IN({$ids})
+			WHERE meta_id NOT IN(
+				SELECT meta_id FROM (
+					SELECT meta_id FROM {$wpdb->postmeta}
+					GROUP BY post_id, meta_key, meta_value
+				) as tmp
+			)
 		");
 
 		$this->admin_msg("Removed <strong>{$count}</strong> duplicates.");
@@ -305,7 +305,7 @@ class settingsCFT extends scbBoxesPage
 
 		foreach ( $map as $key => $title )
 		{
-			$rows = array(				
+			$rows = array(
 				array(
 					'type' => 'text',
 					'names' => 'key[]',
