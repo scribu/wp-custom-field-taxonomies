@@ -4,7 +4,7 @@ Donate link: http://scribu.net/wordpress
 Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.8
 Tested up to: 2.9-rare
-Stable tag: 1.3.3
+Stable tag: trunk
 
 Use custom fields as ad-hoc taxonomies.
 
@@ -78,6 +78,10 @@ This is probably because you have `query_posts()` somewhere in there. An easy wo
 1. The settings page
 
 == Changelog ==
+
+= 1.3.4 =
+* fixed "Remove duplicates" button
+* dropped support for WordPress older than 2.8
 
 = 1.3.3 =
 * ajax-ed admin page
