@@ -68,10 +68,12 @@ This will output:
 Current Mood: [happy](http://example.com/?mood=happy)
 
 == Frequently Asked Questions ==
-= Why isn't it working with my theme? =
-This is probably because you have `query_posts()` somewhere in there. An easy workaround:
-1. Copy meta.php from the plugin directory into your theme directory
-1. Make additional customizations, if necessary.
+
+= "Parse error: syntax error, unexpected T_CLASS..." Help! =
+
+Make sure your new host is running PHP 5. Add this line to wp-config.php:
+
+`var_dump(PHP_VERSION);`
 
 == Screenshots ==
 
