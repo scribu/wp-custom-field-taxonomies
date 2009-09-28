@@ -6,32 +6,39 @@ Requires at least: 2.8
 Tested up to: 2.9-rare
 Stable tag: trunk
 
-Use custom fields as ad-hoc taxonomies.
+Use custom fields like regular post tags
 
 == Description ==
-With this powerfull plugin you can enhance the capabilities of your site by making some of your custom fields act like tags:
+With this powerfull plugin you can enhance your site by making custom fields act like post tags.
 
-= Sort posts in new ways =
-You can have queries as simple as
+= Filter posts in new ways =
+Simple example:
 
-http://yoursite.com/?foo=bar
-(displays posts which have a meta key 'foo' with the value 'bar')
+http://yoursite.com/?price=1000
+(displays posts which have a meta key 'price' with the value '1000')
 
-and as complex as
+Advanced example:
 
-http://yoursite.com/?s=search_term&key1=valueA&key2=valueB...
-(posts that match any regular WordPress query *and* match some or all key=value pairs)
+http://yoursite.com/category/special/?price-min=500&price-max=2000&color=white,green,blue
+(displays posts in the Special category, with a price between 500 and 2000 and one of these colors: white, green, blue)
 
-= Easily choose the keys you will use =
-In the settings page you can select which custom fields to register as meta taxonomies. (This is mandatory)
+= Easily manage custom fields =
+On the settings page, besides choosing which custom fields should be searchable, you have several utilities for custom field maintenance:
 
-= Use built in template tags =
-* `meta_filter_box()` generates an advanced meta search box
-* `meta_cloud()` displays all the tags for a selected taxonomy (can also be restricted by author)
+* search and replace through both custom field keys and custom field values
+* remove duplicate custom fields
+* add default values for certain custom field keys
+
+= Customize your theme with template tags =
+
+The plugin features several template tags that will help you display item information easily:
+
+* `meta_filter_box()` generates an advanced search box
+* `meta_cloud()` displays all the custom field values for a specific key (can also be restricted by post author)
 * `the_meta_title()` outputs a nice title for the search results page
 * `all_meta_info()` displays all the meta values for each post
 * `get_linked_meta()` works just like get_post_meta() with the difference that the values are links, not text
-* `get_meta_taxonomies()` returns all defined taxonomies as an associative array
+* `get_meta_taxonomies()` returns all searchable custom fields as an associative array
 * `is_meta()` is a conditional tag that indicates if you're on a meta taxonomy page
 * `meta_relevance()` displays a percentage that indicates how many key=value pair matches a post has
 
@@ -39,20 +46,13 @@ You can find out more about the available template tags by looking in the **temp
 
 = Use the new theme template =
 If you want post sorted by metadata to be displayed differently you can:
-Copy meta.php from the plugin directory to your current theme directory. You can modify it to fit your theme, if necessary.
-
-= Manage custom fields =
-You can search and replace through both custom field keys and custom field values from the same settings page.
-
-= Remove duplicate custom fields =
-You can remove duplicate custom field pairs (key = value) in posts with the click of a button.
+Copy meta.php from the plugin directory to your current theme directory. You can modify it to fit your theme as necessary.
 
 == Installation ==
 
 1. Unzip the archive and put the folder into your plugins folder (/wp-content/plugins/).
 1. Activate the plugin from the Plugins admin menu.
-1. Add the taxonomies in the settings page.
-1. Add template tags to your theme.
+1. Go to Posts -> CF Taxonomies and select which custom fields should be searchable.
 
 = Example =
 Say you have this meta taxonomy defined:
@@ -81,6 +81,11 @@ Make sure your new host is running PHP 5. Add this line to wp-config.php:
 
 == Changelog ==
 
+= 1.4 =
+* added support for ranges: ?price-min=100&price-max=300
+* security enhancements
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-4.html)
+
 = 1.3.4 =
 * fixed "Remove duplicates" button
 * dropped support for WordPress older than 2.8
@@ -98,6 +103,7 @@ Make sure your new host is running PHP 5. Add this line to wp-config.php:
 = 1.3 =
 * added AND, OR queries
 * fixed compatibility with Smarter Navigation
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-3.html)
 
 = 1.2 =
 * revamped Admin Page

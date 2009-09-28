@@ -1,7 +1,6 @@
 <?php
 /**
  * The following functions are template tags that you can use in your theme.
- * They are loaded automatically and do not need to be copied elsewhere.
  */
 
 
@@ -19,7 +18,7 @@ function is_meta()
  * $format: how to arrange meta name and meta value 
  * $between: what to put between multiple name => value pairs
  */
-function the_meta_title($format = '%name%: %value%', $between = ' and ')
+function the_meta_title($format = '%name%: %value%', $between = '; ')
 {
 	echo get_meta_title($format, $between);
 }
@@ -27,7 +26,7 @@ function the_meta_title($format = '%name%: %value%', $between = ' and ')
 /**
  * Same as the_meta_title(), except it returns the result, instead of echo-ing it
  */
-function get_meta_title($format = '%name%: %value%', $between = ' and ')
+function get_meta_title($format = '%name%: %value%', $between = '; ')
 {
 	return CFT_core::get_meta_title($format, $between);
 }
@@ -46,7 +45,7 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false)
 
 	$values = get_post_meta($id, $key);
 
-	if ( !$values )
+	if ( ! $values )
 		return false;
 
 	foreach ( $values as $i => $value )
@@ -59,14 +58,6 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false)
 
 	return apply_filters('get_linked_meta', $content, $id, $key, $glue);
 }
-
-
-if ( !function_exists('array_slice_assoc') ) :
-function array_slice_assoc($array, $keys)
-{
-	   return array_intersect_key($array, array_flip($keys));
-}
-endif;
 
 /**
  * Display a tag cloud using meta values as tags
@@ -113,6 +104,7 @@ function meta_cloud($metaArgs, $cloudArgs = '')
 	echo $return;
 }
 
+
 /**
  * Display an advanced search box.
  * Make sure that your theme has wp_footer() called somewhere in footer.php
@@ -146,16 +138,29 @@ function meta_filter_box($exclude = array())
 }
 
 
-/** Display a percent relevance for each post
+/** 
+ * Display a percent relevance for each post
  * Should be used inside The Loop
- * $echo: whether to echo or return the content
  */
-function meta_relevance($echo = true)
+function meta_relevance($before = 'Relevance: ', $after = '', $echo = true)
 {
-	if ( !class_exists('CFT_query') )
+	if ( ! is_meta() )
 		return false;
 
-	return CFT_query::meta_relevance($echo);
+	if ( ! CFT_core::$options->relevance )
+		$relevance = '100%';
+	else
+	{
+		global $post;
+		$relevance = round($post->meta_rank) . '%';
+	}
+
+	$result = $before . $relevance . $after;
+
+	if ( ! $echo )
+		return $result;
+
+	echo $result;
 }
 
 
@@ -176,7 +181,7 @@ function get_meta_taxonomies()
  */
 function all_meta_info()
 {
-	foreach ( get_meta_taxonomies() as $key => $name ) 
+	foreach ( get_meta_taxonomies() as $key => $name )
 	{
 		$value = get_linked_meta(get_the_ID(), $key);
 
@@ -188,6 +193,6 @@ function all_meta_info()
 	}
 
 	if ( $output )
-		echo "<table id='extra-info' cellspacing='0'>\n{$output}</table>\n";
+		echo "<table class='extra-info' cellspacing='0'>\n{$output}</table>\n";
 }
 

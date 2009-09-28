@@ -2,7 +2,7 @@
 
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.3.4
+Version: 1.4
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -41,7 +41,7 @@ function _cft_init()
 	CFT_core::init($options);
 	CFT_filter_box::init();
 
-	include_once dirname(__FILE__) . '/template-tags.php';
+	require_once dirname(__FILE__) . '/template-tags.php';
 
 	if ( is_admin() )
 	{
@@ -54,6 +54,30 @@ function _cft_init()
 		add_action('wp_footer', array('CFT_core', 'debug'));
 }
 
+
+// Utilities
+if ( ! function_exists('array_to_sql') ) :
+function array_to_sql($values)
+{
+	foreach ( $values as &$val )
+		$val = "'" . esc_sql(trim($val)) . "'";
+
+	return implode(',', $values);
+}
+endif;
+
+if ( !function_exists('array_slice_assoc') ) :
+function array_slice_assoc($array, $keys)
+{
+	$r = array();
+	foreach ( $keys as $key )
+		$r[$key] = $array[$key];
+
+   return $r;
+}
+endif;
+
+
 abstract class CFT_core
 {
 	const ver = '1.3.3';
@@ -65,11 +89,9 @@ abstract class CFT_core
 	{
 		self::$options = $options;
 
-		// Generate map with the latest settings
 		self::make_map();
 
-		// Detect query
-		if ( ! self::detect_query() )
+		if ( ! self::collect_query_vars() )
 			return false;
 
 		require_once dirname(__FILE__) . '/query.php';
@@ -88,11 +110,10 @@ abstract class CFT_core
 			if ( empty($name) )
 				self::$map[$key] = ucfirst($key);
 
-		// for convenience,
 		return self::$map;
 	}
 
-	private static function detect_query()
+	private static function collect_query_vars()
 	{
 		if ( is_admin() || empty(self::$map) )
 			return false;
@@ -101,7 +122,16 @@ abstract class CFT_core
 
 		foreach ( $_GET as $key => $value )
 			if ( in_array($key, $keys) )
-				self::$query_vars[$key] = wp_specialchars($value);
+				self::$query_vars[$key] = $value;
+
+		foreach ( $keys as $key )
+		{
+			$min = $_GET["$key-min"];
+			$max = $_GET["$key-max"];
+
+			if ( $min || $max )
+				self::$query_vars[$key] = compact('min', 'max');
+		}
 
 		self::$query_vars = apply_filters('cft_query_vars', self::$query_vars, self::$map);
 
@@ -110,9 +140,7 @@ abstract class CFT_core
 
 	static function add_template()
 	{
-		$template = TEMPLATEPATH . "/meta.php";
-
-		if ( file_exists($template) )
+		if ( $template = locate_template(array('meta.php')) )
 		{
 			include($template);
 			die;
@@ -132,14 +160,19 @@ abstract class CFT_core
 
 		return implode('', $newtitle);
 	}
-	
-	static function get_meta_title($format = '%name%: %value%', $between = ' and ')
+
+	static function get_meta_title($format = '%name%: %value%', $between = '; ')
 	{
 		foreach ( CFT_core::$query_vars as $key => $value )
 		{
 			$name = CFT_core::$map[$key];
 
-			$title[] = str_replace(array('%name%', '%value%'), array($name, stripslashes($value)), $format);
+			if ( is_array($value) )
+				$value = esc_html($value['min']) . ' &mdash; ' . esc_html($value['max']);
+			else
+				$value = esc_html($value);
+
+			$title[] = str_replace(array('%name%', '%value%'), array($name, $value), $format);
 		}
 
 		return implode($between, $title);
@@ -166,18 +199,21 @@ abstract class CFT_core
 
 		global $wpdb;
 
+		$key = esc_sql($key);
+		$hint = like_escape(esc_sql($hint));
+		$auth_id = absint($auth_id);
+		$number = absint($number);
+
 		$where = "AND m.meta_key = '$key'";
 
-		if ( !empty($hint) )
+		if ( ! empty($hint) )
 			$where .= " AND m.meta_value LIKE ('%{$hint}%')";
 
 		// Author
-		$auth_id = absint($auth_id);
 		if ( $auth_id != 0 )
 			$where .= " AND p.post_author = " . $auth_id;
 
 		// Limit
-		$number = absint($number);
 		if ( $number != 0 )
 			$limit_clause = 'LIMIT 0, ' . $number;
 
@@ -190,7 +226,6 @@ abstract class CFT_core
 		}
 
 		$interms = self::terms_clause($include);
-
 		if ( ! empty($interms) )
 			$where .= " AND m.meta_value IN $interms";
 
@@ -217,10 +252,7 @@ abstract class CFT_core
 
 		$terms = preg_split('/[\s,]+/', $str);
 
-		foreach ( $terms as &$term )
-			$term = "'" . trim($term) . "'";
-
-		return '(' . implode(',', $terms) . ')';
+		return '(' . array_to_sql($terms) . ')';
 	}
 
 	static function get_meta_url($key, $value, $relative = false)
@@ -238,6 +270,19 @@ abstract class CFT_core
 		return apply_filters('cft_get_url', $url, $key, $value, $relative);
 	}
 
+	static function get_current_url()
+	{
+		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
+
+		if ( $_SERVER["SERVER_PORT"] != "80" )
+			$pageURL .= $_SERVER["SERVER_NAME"]. ":" .$_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
+		else
+			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+
+		return $pageURL;
+	}
+
+	// not used (buggy)
 	static function make_canonical()
 	{
 		// Get canonical location (shouldn't be relative for single posts)
@@ -253,18 +298,6 @@ abstract class CFT_core
 		die;
 	}
 
-	static function get_current_url()
-	{
-		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
-
-		if ( $_SERVER["SERVER_PORT"] != "80" )
-			$pageURL .= $_SERVER["SERVER_NAME"]. ":" .$_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
-		else
-			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
-
-		return $pageURL;
-	}
-
 	static function debug()
 	{
 		$query = $GLOBALS["wp_query"]->request;
@@ -274,7 +307,6 @@ abstract class CFT_core
 		echo "<pre style='text-align:left; font-size: 12px'>" . trim($query) . "</pre>";
 	}
 }
-
 
 // Sets up scripts and AJAX suggest
 class CFT_filter_box
@@ -312,10 +344,8 @@ class CFT_filter_box
 
 	static function ajax_meta_search()
 	{
-		global $wpdb;
-
-		$key = $wpdb->escape(trim($_GET['key']));
-		$hint = $wpdb->escape(trim($_GET['q']));
+		$key = trim($_GET['key']);
+		$hint = trim($_GET['q']);
 
 		if ( ! CFT_core::is_defined($key) )
 			die(-1);
@@ -326,16 +356,4 @@ class CFT_filter_box
 		die;
 	}
 }
-
-// WP < 2.8
-if ( !function_exists('plugin_dir_url') ) :
-function plugin_dir_url($file)
-{
-	// WP < 2.6
-	if ( !function_exists('plugins_url') )
-		return trailingslashit(get_option('siteurl') . '/wp-content/plugins/' . plugin_basename($file));
-
-	return trailingslashit(plugins_url(plugin_basename(dirname($file))));
-}
-endif;
 

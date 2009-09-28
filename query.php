@@ -81,7 +81,7 @@ abstract class CFT_query
 
 		// Parse query_vars
 		$case = $and = $or = array();
-		
+
 		foreach ( self::$query_vars as $key => $value )
 		{
 			$clause = "WHEN '$key' THEN meta_value ";
@@ -90,35 +90,51 @@ abstract class CFT_query
 			{
 				$case[$key] = $clause . "IS NOT NULL";
 			}
+			elseif ( is_array($value) )
+			{
+				extract($value);
+
+				$case[$key] = $clause;
+
+				if ( $min && $max )
+					$case[$key] .= $wpdb->prepare(">= %s AND meta_value <= %s", $min, $max);
+				elseif ( $min )
+					$case[$key] .= $wpdb->prepare(">= %s", $min);
+				else
+					$case[$key] .= $wpdb->prepare("<= %s", $max);
+			}
 			elseif ( CFT_core::$options->allow_and && FALSE !== strpos($value, ' ') )
 			{
 				$and[$key] = explode(' ', $value);
 			}
 			elseif ( CFT_core::$options->allow_or && FALSE !== strpos($value, ',') )
 			{
-				$value = self::array_to_sql(explode(',', $value));
+				$value = array_to_sql(explode(',', $value));
 				$case[$key] = $clause . "IN ($value)";
 			}
 			elseif ( FALSE !== strpos($value, '*') )
 			{
-				$value = str_replace('*', '%', $value);
+				$value = str_replace('*', '%', like_escape(esc_sql($value)));
 				$case[$key] = $clause . "LIKE('$value')";
 			}
 			else
-				$case[$key] = $clause . "= '$value'";
+				$case[$key] = $clause . $wpdb->prepare("= %s", $value);
 		}
 
 		// CASE SQL
 		$case = apply_filters('cft_case_clause', $case, self::$query_vars);
 
-		$case = " AND CASE meta_key " . implode("\n", $case) . " END";
+		if ( ! empty($case) )
+			$case = " AND CASE meta_key " . implode("\n", $case) . " END";
+		else
+			$case = '';
 
 		// AND SQL
 		foreach ( $and as $key => $clause )
 		{
 			$count = count($clause);
 
-			$clause = self::array_to_sql($clause);
+			$clause = array_to_sql($clause);
 
 			$and_sql .= " AND {$wpdb->posts}.ID IN (
 				SELECT post_id
@@ -131,14 +147,6 @@ abstract class CFT_query
 		}
 
 		return $where . $case . $and_sql;
-	}
-
-	private static function array_to_sql($values)
-	{
-		foreach ( $values as &$val )
-			$val = "'" . trim($val) . "'";
-
-		return implode(',', $values);
 	}
 
 	static function posts_groupby($groupby)
@@ -158,6 +166,7 @@ abstract class CFT_query
 		{
 			if ( !empty($groupby) )
 				$column .= ',';
+
 			$groupby = $column . $groupby;
 		}
 
@@ -242,19 +251,6 @@ abstract class CFT_query
 		rsort($values);
 
 		self::$penalties = array_combine(array_keys(self::$penalties), $values);
-	}
-
-	// Template tag
-	static function meta_relevance($echo)
-	{
-		global $post;
-
-		$relevance = round($post->meta_rank) . '%';
-
-		if ( !$echo )
-			return $relevance;
-
-		echo $relevance;
 	}
 }
 
