@@ -218,7 +218,7 @@ $wpdb->show_errors = true;
 		if ( ! $new_opts['relevance'] )
 			$new_opts['rank_by_order'] = false;
 
-		$this->options->update_part($new_opts);
+		$this->options->set($new_opts);
 
 		$this->admin_msg("Settings <strong>saved</strong>.");
 	}
@@ -277,8 +277,8 @@ $wpdb->show_errors = true;
 			$new_map[$key] = trim($_POST['title'][$i]);
 		}
 
-		$this->options->update_part(array('map' => $new_map));
-		
+		$this->options->set('map', $new_map);
+
 		// Rebuild map
 		$this->map = CFT_core::make_map();
 

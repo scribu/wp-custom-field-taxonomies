@@ -4,7 +4,7 @@ Donate link: http://scribu.net/wordpress
 Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.8
 Tested up to: 2.9-rare
-Stable tag: trunk
+Stable tag: 1.4
 
 Use custom fields like regular post tags
 

@@ -1,8 +1,7 @@
 <?php
-
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.4
+Version: 1.4.1b
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
