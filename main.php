@@ -24,8 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 _cft_init();
-function _cft_init()
-{
+function _cft_init() {
 	// Load scbFramework
 	require_once dirname(__FILE__) . '/scb/load.php';
 
@@ -42,8 +41,7 @@ function _cft_init()
 
 	require_once dirname(__FILE__) . '/template-tags.php';
 
-	if ( is_admin() )
-	{
+	if ( is_admin() ) {
 		require_once dirname(__FILE__) . '/admin.php';
 		new settingsCFT(__FILE__, $options, CFT_core::make_map());
 	}
@@ -56,8 +54,7 @@ function _cft_init()
 
 // Utilities
 if ( ! function_exists('array_to_sql') ) :
-function array_to_sql($values)
-{
+function array_to_sql($values) {
 	foreach ( $values as &$val )
 		$val = "'" . esc_sql(trim($val)) . "'";
 
@@ -66,8 +63,7 @@ function array_to_sql($values)
 endif;
 
 if ( !function_exists('array_slice_assoc') ) :
-function array_slice_assoc($array, $keys)
-{
+function array_slice_assoc($array, $keys) {
 	$r = array();
 	foreach ( $keys as $key )
 		$r[$key] = $array[$key];
@@ -77,15 +73,13 @@ function array_slice_assoc($array, $keys)
 endif;
 
 
-abstract class CFT_core
-{
-	const ver = '1.3.3';
+abstract class CFT_core {
+	const ver = '1.4.1';
 	static $options;
 	static $map;
 	static $query_vars;
 
-	static function init($options)
-	{
+	static function init($options) {
 		self::$options = $options;
 
 		self::make_map();
@@ -101,8 +95,7 @@ abstract class CFT_core
 		add_filter('wp_title', array(__CLASS__, 'set_title'), 20, 3);
 	}
 
-	static function make_map()
-	{
+	static function make_map() {
 		self::$map = (array) self::$options->get('map');
 
 		foreach ( self::$map as $key => $name )
@@ -112,8 +105,7 @@ abstract class CFT_core
 		return self::$map;
 	}
 
-	private static function collect_query_vars()
-	{
+	private static function collect_query_vars() {
 		if ( is_admin() || empty(self::$map) )
 			return false;
 
@@ -123,10 +115,9 @@ abstract class CFT_core
 			if ( in_array($key, $keys) )
 				self::$query_vars[$key] = $value;
 
-		foreach ( $keys as $key )
-		{
-			$min = $_GET["$key-min"];
-			$max = $_GET["$key-max"];
+		foreach ( $keys as $key ) {
+			$min = @$_GET["$key-min"];
+			$max = @$_GET["$key-max"];
 
 			if ( $min || $max )
 				self::$query_vars[$key] = compact('min', 'max');
@@ -137,17 +128,14 @@ abstract class CFT_core
 		return ! empty(self::$query_vars);
 	}
 
-	static function add_template()
-	{
-		if ( $template = locate_template(array('meta.php')) )
-		{
+	static function add_template() {
+		if ( $template = locate_template(array('meta.php')) ) {
 			include($template);
 			die;
 		}
 	}
 
-	static function set_title($title, $sep, $seplocation = '')
-	{
+	static function set_title($title, $sep, $seplocation = '') {
 		$newtitle[] = self::get_meta_title();
 		$newtitle[] = " $sep ";
 
@@ -160,10 +148,8 @@ abstract class CFT_core
 		return implode('', $newtitle);
 	}
 
-	static function get_meta_title($format = '%name%: %value%', $between = '; ')
-	{
-		foreach ( CFT_core::$query_vars as $key => $value )
-		{
+	static function get_meta_title($format = '%name%: %value%', $between = '; ') {
+		foreach ( CFT_core::$query_vars as $key => $value ) {
 			$name = CFT_core::$map[$key];
 
 			if ( is_array($value) )
@@ -179,16 +165,14 @@ abstract class CFT_core
 
 // Helper methods
 
-	static function is_defined($key)
-	{
+	static function is_defined($key) {
 		if ( ! $r = in_array($key, array_keys(self::$map)) )
 			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
 
 		return $r;
 	}
 
-	static function get_meta_values($key, $args = '')
-	{
+	static function get_meta_values($key, $args = '') {
 		extract(wp_parse_args($args, array(
 			'auth_id' => 0,
 			'hint' => '',
@@ -218,8 +202,7 @@ abstract class CFT_core
 
 		// Exclude / include
 		$exterms = self::terms_clause($exclude);
-		if ( ! empty($exterms) )
-		{
+		if ( ! empty($exterms) ) {
 			unset($include);
 			$where .= " AND m.meta_value NOT IN $exterms";
 		}
@@ -234,18 +217,14 @@ abstract class CFT_core
 			SELECT m.meta_value AS name, COUNT(m.meta_value) AS count
 			FROM {$wpdb->postmeta} m
 			JOIN {$wpdb->posts} p ON m.post_id = p.ID
-			WHERE p.post_status = 'publish'
-			{$where}
-			GROUP BY m.meta_value
-			{$orderby}
-			{$limit_clause}
+			WHERE p.post_status = 'publish' {$where}
+			GROUP BY m.meta_value {$orderby} {$limit_clause}
 		");
 
 		return apply_filters('cft_get_values', $values, $key, $auth_id, $limit, $hint);
 	}
 
-	private static function terms_clause($str)
-	{
+	private static function terms_clause($str) {
 		if ( empty($str) )
 			return '';
 
@@ -254,8 +233,7 @@ abstract class CFT_core
 		return '(' . array_to_sql($terms) . ')';
 	}
 
-	static function get_meta_url($key, $value, $relative = false)
-	{
+	static function get_meta_url($key, $value, $relative = false) {
 		if ( is_singular() )
 			$relative = false;
 
@@ -269,8 +247,7 @@ abstract class CFT_core
 		return apply_filters('cft_get_url', $url, $key, $value, $relative);
 	}
 
-	static function get_current_url()
-	{
+	static function get_current_url() {
 		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
 
 		if ( $_SERVER["SERVER_PORT"] != "80" )
@@ -282,8 +259,7 @@ abstract class CFT_core
 	}
 
 	// not used (buggy)
-	static function make_canonical()
-	{
+	static function make_canonical() {
 		// Get canonical location (shouldn't be relative for single posts)
 		$location = trailingslashit(get_bloginfo('url'));
 
@@ -297,8 +273,7 @@ abstract class CFT_core
 		die;
 	}
 
-	static function debug()
-	{
+	static function debug() {
 		$query = $GLOBALS["wp_query"]->request;
 		foreach (array('FROM', 'JOIN', 'WHERE', 'AND', 'LIMIT', 'GROUP', 'ORDER', "\tWHEN", 'END') as $c)
 			$query = str_replace(trim($c), "\n".$c, $query);
@@ -308,18 +283,15 @@ abstract class CFT_core
 }
 
 // Sets up scripts and AJAX suggest
-class CFT_filter_box
-{
+class CFT_filter_box {
 	const ajax_key = 'ajax-meta-search';
 
-	static function init()
-	{
+	static function init() {
 		add_action('wp_ajax_' . self::ajax_key, array(__CLASS__, 'ajax_meta_search'));
 		add_action('wp_ajax_nopriv_' . self::ajax_key, array(__CLASS__, 'ajax_meta_search'));
 	}
 
-	static function scripts()
-	{
+	static function scripts() {
 		global $wp_scripts;
 
 		$url = plugin_dir_url(__FILE__) . 'inc/';
@@ -341,8 +313,7 @@ class CFT_filter_box
 		echo implode("\n", $scripts);
 	}
 
-	static function ajax_meta_search()
-	{
+	static function ajax_meta_search() {
 		$key = trim($_GET['key']);
 		$hint = trim($_GET['q']);
 

@@ -5,8 +5,7 @@
 
 
 // Check if the current page is a meta page.
-function is_meta()
-{
+function is_meta() {
 	global $wp_query;
 
 	return (bool) $wp_query->is_meta;
@@ -15,19 +14,17 @@ function is_meta()
 
 /**
  * Display the meta title. You can choose the format.
- * $format: how to arrange meta name and meta value 
+ * $format: how to arrange meta name and meta value
  * $between: what to put between multiple name => value pairs
  */
-function the_meta_title($format = '%name%: %value%', $between = '; ')
-{
+function the_meta_title($format = '%name%: %value%', $between = '; ') {
 	echo get_meta_title($format, $between);
 }
 
 /**
  * Same as the_meta_title(), except it returns the result, instead of echo-ing it
  */
-function get_meta_title($format = '%name%: %value%', $between = '; ')
-{
+function get_meta_title($format = '%name%: %value%', $between = '; ') {
 	return CFT_core::get_meta_title($format, $between);
 }
 
@@ -38,8 +35,7 @@ function get_meta_title($format = '%name%: %value%', $between = '; ')
  * $key: one of the defined taxonomy keys
  * $glue: what to put between values (optional)
  */
-function get_linked_meta($id, $key, $glue = ', ', $relative = false)
-{
+function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 	if ( ! CFT_core::is_defined($key) )
 		return false;
 
@@ -67,8 +63,7 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false)
  *	'relative' => make tag links relative (default: false)
  * $cloudArgs: see wp_tag_cloud() for available args (optional)
  */
-function meta_cloud($metaArgs, $cloudArgs = '')
-{
+function meta_cloud($metaArgs, $cloudArgs = '') {
 	extract(wp_parse_args($metaArgs, array(
 		'key' => NULL,
 		'auth_id' => NULL,
@@ -110,8 +105,7 @@ function meta_cloud($metaArgs, $cloudArgs = '')
  * Make sure that your theme has wp_footer() called somewhere in footer.php
  * $exclude: an array of meta keys to be excluded
  */
-function meta_filter_box($exclude = array())
-{
+function meta_filter_box($exclude = array()) {
 	add_action('wp_footer', array(CFT_filter_box, 'scripts'));
 
 	$map = CFT_core::$map;
@@ -138,19 +132,17 @@ function meta_filter_box($exclude = array())
 }
 
 
-/** 
+/**
  * Display a percent relevance for each post
  * Should be used inside The Loop
  */
-function meta_relevance($before = 'Relevance: ', $after = '', $echo = true)
-{
+function meta_relevance($before = 'Relevance: ', $after = '', $echo = true) {
 	if ( ! is_meta() )
 		return false;
 
 	if ( ! CFT_core::$options->relevance )
 		$relevance = '100%';
-	else
-	{
+	else {
 		global $post;
 		$relevance = round($post->meta_rank) . '%';
 	}
@@ -168,8 +160,7 @@ function meta_relevance($before = 'Relevance: ', $after = '', $echo = true)
  * Get all defined taxonomies as an associative array
  * $key => $value
  */
-function get_meta_taxonomies()
-{
+function get_meta_taxonomies() {
 	return CFT_core::$map;
 }
 
@@ -179,10 +170,8 @@ function get_meta_taxonomies()
  * This is based on the other template tags and is provided for convenience. (should be used within The Loop)
  * You can copy the following function into your functions.php theme file and modify it to your needs. (Don't forget to give it a different name)
  */
-function all_meta_info()
-{
-	foreach ( get_meta_taxonomies() as $key => $name )
-	{
+function all_meta_info() {
+	foreach ( get_meta_taxonomies() as $key => $name ) {
 		$value = get_linked_meta(get_the_ID(), $key);
 
 		if ( empty($name) )

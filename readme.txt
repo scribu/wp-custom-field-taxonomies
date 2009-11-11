@@ -81,6 +81,9 @@ Make sure your new host is running PHP 5. Add this line to wp-config.php:
 
 == Changelog ==
 
+= 1.4.1 =
+* fix bug in settings page
+
 = 1.4 =
 * added support for ranges: ?price-min=100&price-max=300
 * security enhancements

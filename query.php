@@ -1,13 +1,11 @@
 <?php
 
-abstract class CFT_query 
-{
+abstract class CFT_query {
 	private static $query_vars;
 	private static $filters;
 	private static $penalties;
 
-	static function init($query_vars)
-	{
+	static function init($query_vars) {
 		self::$query_vars = $query_vars;
 
 		// Set filters		
@@ -24,32 +22,27 @@ abstract class CFT_query
 		add_action('pre_get_posts', array(__CLASS__, 'add_filters'));
 	}
 
-	static function add_filters($obj)
-	{
+	static function add_filters($obj) {
 		// Adds filters only to main query
 		if ( $GLOBALS['wp_query'] != $obj )
 			return;
 
-		foreach ( self::$filters as $name => $callback )
-		{
+		foreach ( self::$filters as $name => $callback ) {
 			if ( empty($callback) )
 				$callback = $name;
 			add_filter($name, array(__CLASS__, $callback));
 		}
 	}
 
-	static function remove_filters()
-	{
-		foreach ( self::$filters as $name => $callback )
-		{
+	static function remove_filters() {
+		foreach ( self::$filters as $name => $callback ) {
 			if ( empty($callback) )
 				$callback = $name;
 			remove_filter($name, array(__CLASS__, $callback));
 		}
 	}
 
-	static function posts_fields($fields)
-	{
+	static function posts_fields($fields) {
 		global $wpdb;
 
 		if ( ! CFT_core::$options->relevance )
@@ -60,19 +53,16 @@ abstract class CFT_query
 		return $fields . ", COUNT(*) * 100 / {$nr} AS meta_rank";
 	}
 
-	static function posts_join($join)
-	{
+	static function posts_join($join) {
 		global $wpdb;
 
 		return $join . " JOIN {$wpdb->postmeta} ON ({$wpdb->posts}.ID = {$wpdb->postmeta}.post_id)";
 	}
 
-	static function posts_where($where)
-	{
+	static function posts_where($where) {
 		global $wpdb;
 
-		if ( is_singular() )
-		{
+		if ( is_singular() ) {
 //			CFT_core::make_canonical();
 
 			// Get posts instead of front page
@@ -82,16 +72,13 @@ abstract class CFT_query
 		// Parse query_vars
 		$case = $and = $or = array();
 
-		foreach ( self::$query_vars as $key => $value )
-		{
+		foreach ( self::$query_vars as $key => $value ) {
 			$clause = "WHEN '$key' THEN meta_value ";
 
-			if ( empty($value) )
-			{
+			if ( empty($value) ) {
 				$case[$key] = $clause . "IS NOT NULL";
 			}
-			elseif ( is_array($value) )
-			{
+			elseif ( is_array($value) ) {
 				extract($value);
 
 				$case[$key] = $clause;
@@ -103,17 +90,14 @@ abstract class CFT_query
 				else
 					$case[$key] .= $wpdb->prepare("<= %s", $max);
 			}
-			elseif ( CFT_core::$options->allow_and && FALSE !== strpos($value, ' ') )
-			{
+			elseif ( CFT_core::$options->allow_and && FALSE !== strpos($value, ' ') ) {
 				$and[$key] = explode(' ', $value);
 			}
-			elseif ( CFT_core::$options->allow_or && FALSE !== strpos($value, ',') )
-			{
+			elseif ( CFT_core::$options->allow_or && FALSE !== strpos($value, ',') ) {
 				$value = array_to_sql(explode(',', $value));
 				$case[$key] = $clause . "IN ($value)";
 			}
-			elseif ( FALSE !== strpos($value, '*') )
-			{
+			elseif ( FALSE !== strpos($value, '*') ) {
 				$value = str_replace('*', '%', like_escape(esc_sql($value)));
 				$case[$key] = $clause . "LIKE('$value')";
 			}
@@ -130,8 +114,7 @@ abstract class CFT_query
 			$case = '';
 
 		// AND SQL
-		foreach ( $and as $key => $clause )
-		{
+		foreach ( $and as $key => $clause ) {
 			$count = count($clause);
 
 			$clause = array_to_sql($clause);
@@ -149,8 +132,7 @@ abstract class CFT_query
 		return $where . $case . $and_sql;
 	}
 
-	static function posts_groupby($groupby)
-	{
+	static function posts_groupby($groupby) {
 		global $wpdb;
 
 		// Set having
@@ -162,8 +144,7 @@ abstract class CFT_query
 		$column = "{$wpdb->posts}.ID";
 
 		// Add wp_posts.ID if it's not already added
-		if ( FALSE === strpos($groupby, $column) )
-		{
+		if ( FALSE === strpos($groupby, $column) ) {
 			if ( !empty($groupby) )
 				$column .= ',';
 
@@ -173,8 +154,7 @@ abstract class CFT_query
 		return $groupby . $having;
 	}
 
-	static function posts_orderby($orderby)
-	{
+	static function posts_orderby($orderby) {
 		if ( ! CFT_core::$options->relevance )
 			return $orderby;
 
@@ -182,8 +162,7 @@ abstract class CFT_query
 	}
 
 	// Sorts posts using penalties
-	static function rank_by_order($posts)
-	{
+	static function rank_by_order($posts) {
 		// Important
 		self::remove_filters();
 		self::set_query_flags();
@@ -193,8 +172,7 @@ abstract class CFT_query
 
 		self::set_penalties();
 
-		foreach ( $posts as $post )
-		{
+		foreach ( $posts as $post ) {
 			// Get relevant keys
 			$values = get_post_custom($post->ID);
 
@@ -209,8 +187,7 @@ abstract class CFT_query
 		return $posts;
 	}
 
-	function set_query_flags()
-	{
+	function set_query_flags() {
 		global $wp_query;
 
 /*
@@ -227,8 +204,7 @@ abstract class CFT_query
 		$wp_query->is_meta = true;
 	}
 
-	static function cmp_relevance($postA, $postB)
-	{
+	static function cmp_relevance($postA, $postB) {
 		$a = $postA->meta_rank;
 		$b = $postB->meta_rank;
 
@@ -239,10 +215,8 @@ abstract class CFT_query
 	}
 
 	// Penalties are based on the order of the query vars
-	static function set_penalties()
-	{
-		foreach ( array_keys(self::$query_vars) as $key )
-		{
+	static function set_penalties() {
+		foreach ( array_keys(self::$query_vars) as $key ) {
 			self::$penalties[$key] = strpos($_SERVER['QUERY_STRING'], $key.'=');
 			self::$penalties[$key] = count(self::$penalties) - 1;
 		}

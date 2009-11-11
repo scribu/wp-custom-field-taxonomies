@@ -1,10 +1,8 @@
 <?php
 
 // Adds the CFT Settings page
-class settingsCFT extends scbBoxesPage 
-{
-	function __construct($file, $options, $map)
-	{
+class settingsCFT extends scbBoxesPage {
+	function __construct($file, $options, $map) {
 		$this->map = $map;
 
 		$this->args = array(
@@ -40,14 +38,12 @@ class settingsCFT extends scbBoxesPage
 		parent::__construct($file, $options);
 	}
 
-	function page_head()
-	{
+	function page_head() {
 		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_core::ver);
 		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_core::ver);
 	}
 
-	function replace_values_handler()
-	{
+	function replace_values_handler() {
 		if ( !isset($_POST["value_action"]) )
 			return;
 	
@@ -75,8 +71,7 @@ class settingsCFT extends scbBoxesPage
 		$this->admin_msg($message);
 	}
 
-	function replace_values_box()
-	{
+	function replace_values_box() {
 		$select = $this->input(array(
 			'type' => 'select',
 			'name' => 'value_key',
@@ -92,8 +87,7 @@ class settingsCFT extends scbBoxesPage
 	}
 
 
-	function replace_keys_handler()
-	{
+	function replace_keys_handler() {
 		if ( !isset($_POST["key_action"]) )
 			return;
 	
@@ -110,14 +104,12 @@ class settingsCFT extends scbBoxesPage
 		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
 	}
 
-	function replace_keys_box()
-	{
+	function replace_keys_box() {
 		echo $this->form_wrap(sprintf("<table>{$this->sr_row}</table>\n", 'key'), false);
 	}
 
 
-	function add_default_handler()
-	{
+	function add_default_handler() {
 		if ( !isset($_POST["add_default"]) )
 			return;
 
@@ -140,8 +132,7 @@ class settingsCFT extends scbBoxesPage
 			)
 		");
 
-		if ( empty($ids) )
-		{
+		if ( empty($ids) ) {
 			$this->admin_msg("All posts have values for <em>{$this->map[$key]}</em> taxonomy.");
 			return;
 		}
@@ -156,8 +147,7 @@ class settingsCFT extends scbBoxesPage
 		$this->admin_msg("Added {$this->map[$key]}: '{$value}' to <strong>{$count}</strong> posts.");
 	}
 
-	function add_default_box()
-	{
+	function add_default_box() {
 		$select = $this->input(array(
 			'type' => 'select',
 			'name' => 'default_key',
@@ -175,8 +165,7 @@ class settingsCFT extends scbBoxesPage
 	}
 
 
-	function duplicates_handler()
-	{
+	function duplicates_handler() {
 		if ( 'Remove duplicates' != $_POST['action'] )
 			return;
 
@@ -198,16 +187,14 @@ $wpdb->show_errors = true;
 		$this->admin_msg("Removed <strong>{$count}</strong> duplicates.");
 	}
 
-	function duplicates_box()
-	{
+	function duplicates_box() {
 		echo "<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.</p>";
 		echo "<p>Please <strong>backup</strong> your database first.</p>\n";
 		echo $this->form_wrap('', 'Remove duplicates');
 	}
 
 
-	function settings_handler()
-	{
+	function settings_handler() {
 		if ( 'Save settings' != $_POST['action'] )
 			return;
 
@@ -223,8 +210,7 @@ $wpdb->show_errors = true;
 		$this->admin_msg("Settings <strong>saved</strong>.");
 	}
 
-	function settings_box()
-	{
+	function settings_box() {
 		echo $this->css_wrap(".url {font-family: 'Courier'; font-size: 110%}");
 
 		$rows = array(
@@ -260,15 +246,13 @@ $wpdb->show_errors = true;
 	}
 
 
-	function taxonomies_handler()
-	{
+	function taxonomies_handler() {
 		if ( 'Save taxonomies' != $_POST['action'] )
 			return;
 
 		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
 
-		foreach ( (array) $_POST['key'] as $i => $key )
-		{
+		foreach ( (array) $_POST['key'] as $i => $key ) {
 			$key = sanitize_title_with_dashes($key);
 
 			if ( empty($key) || in_array($key, $restricted_keys) )
@@ -285,8 +269,7 @@ $wpdb->show_errors = true;
 		$this->admin_msg("Taxonomies <strong>saved</strong>.");
 	}
 
-	function taxonomies_box()
-	{
+	function taxonomies_box() {
 		ob_start();
 ?>
 	<table class="widefat">
@@ -303,8 +286,7 @@ $wpdb->show_errors = true;
 		if ( empty($map) )
 			$map = array('' => '');
 
-		foreach ( $map as $key => $title )
-		{
+		foreach ( $map as $key => $title ) {
 			$rows = array(
 				array(
 					'type' => 'text',
@@ -338,8 +320,7 @@ $wpdb->show_errors = true;
 
 
 	// AJAX response
-	function ajax_meta_search()
-	{
+	function ajax_meta_search() {
 		if ( !current_user_can('manage_options') )
 			die(-1);
 
@@ -360,11 +341,10 @@ $wpdb->show_errors = true;
 	}
 
 /*
-	function cf_template_import()
-	{
+	function cf_template_import() {
 		global $custom_field_template;
 		
-		if ( !isset($custom_field_template) ) 
+		if ( !isset($custom_field_template) )
 			return;
 
 		$options = $custom_field_template->get_custom_field_template_data();
