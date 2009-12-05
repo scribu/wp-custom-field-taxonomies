@@ -251,6 +251,7 @@ $wpdb->show_errors = true;
 			return;
 
 		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
+		$restricted_keys = array_merge($restricted_keys, CFT_core::get_other_vars());
 
 		foreach ( (array) $_POST['key'] as $i => $key ) {
 			$key = sanitize_title_with_dashes($key);
@@ -315,7 +316,7 @@ $wpdb->show_errors = true;
 	  </tbody>
 	</table>
 <?php
-		echo $this->form_wrap(ob_get_clean(), 'Save taxonomies');
+		echo $this->form_wrap(ob_get_clean(), 'Save taxonomies', 'action', 'button no-ajax');
 	}
 
 

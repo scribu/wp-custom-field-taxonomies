@@ -108,7 +108,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
 function meta_filter_box($exclude = array()) {
 	add_action('wp_footer', array(CFT_filter_box, 'scripts'));
 
-	$map = CFT_core::$map;
+	$map = CFT_core::get_map();
 
 	foreach ( $exclude as $key )
 		unset($map[$key]);
@@ -161,7 +161,7 @@ function meta_relevance($before = 'Relevance: ', $after = '', $echo = true) {
  * $key => $value
  */
 function get_meta_taxonomies() {
-	return CFT_core::$map;
+	return CFT_core::get_map();
 }
 
 

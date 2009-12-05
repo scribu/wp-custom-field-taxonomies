@@ -1,12 +1,17 @@
 <?php
 
+// Transform the query vars to SQL
+
 abstract class CFT_query {
 	private static $query_vars;
+	private static $other_query_vars;
+
 	private static $filters;
 	private static $penalties;
 
-	static function init($query_vars) {
+	static function init($query_vars, $other_query_vars) {
 		self::$query_vars = $query_vars;
+		self::$other_query_vars = $other_query_vars;
 
 		// Set filters		
 		self::$filters = array(
@@ -155,10 +160,29 @@ abstract class CFT_query {
 	}
 
 	static function posts_orderby($orderby) {
-		if ( ! CFT_core::$options->relevance )
-			return $orderby;
+		if ( CFT_core::$options->relevance )
+			return "meta_rank DESC, " . $orderby;
 
-		return "meta_rank DESC, " . $orderby;
+		global $wpdb;
+
+		if ( $field = @self::$other_query_vars['meta_orderby'] ) {
+			if ( ! in_array($field, array_keys(CFT_core::get_map())) )
+				return $orderby;
+
+			$order = strtoupper(trim(@self::$other_query_vars['meta_order']));
+			if ( ! in_array($order, array('ASC', 'DESC')) )
+				$order = 'ASC';
+
+			$orderby = "(
+				SELECT meta_value
+				FROM $wpdb->postmeta tmp
+				WHERE tmp.post_id = $wpdb->posts.ID
+				AND tmp.meta_key = '$field'
+				LIMIT 1
+			) $order";
+		}
+
+		return $orderby;
 	}
 
 	// Sorts posts using penalties

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.4.1b
+Version: 1.4.1b2
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -51,33 +51,14 @@ function _cft_init() {
 		add_action('wp_footer', array('CFT_core', 'debug'));
 }
 
-
-// Utilities
-if ( ! function_exists('array_to_sql') ) :
-function array_to_sql($values) {
-	foreach ( $values as &$val )
-		$val = "'" . esc_sql(trim($val)) . "'";
-
-	return implode(',', $values);
-}
-endif;
-
-if ( !function_exists('array_slice_assoc') ) :
-function array_slice_assoc($array, $keys) {
-	$r = array();
-	foreach ( $keys as $key )
-		$r[$key] = $array[$key];
-
-   return $r;
-}
-endif;
-
-
 abstract class CFT_core {
 	const ver = '1.4.1';
 	static $options;
-	static $map;
-	static $query_vars;
+
+	private static $map;
+	private static $query_vars;
+	private static $other_keys = array('meta_orderby', 'meta_order');
+	private static $other_query_vars;
 
 	static function init($options) {
 		self::$options = $options;
@@ -88,7 +69,7 @@ abstract class CFT_core {
 			return false;
 
 		require_once dirname(__FILE__) . '/query.php';
-		CFT_query::init(self::$query_vars);
+		CFT_query::init(self::$query_vars, self::$other_query_vars);
 
 		// Customize template and title
 		add_action('template_redirect', array(__CLASS__, 'add_template'), 999);
@@ -96,7 +77,7 @@ abstract class CFT_core {
 	}
 
 	static function make_map() {
-		self::$map = (array) self::$options->get('map');
+		self::$map = (array) self::$options->map;
 
 		foreach ( self::$map as $key => $name )
 			if ( empty($name) )
@@ -105,15 +86,31 @@ abstract class CFT_core {
 		return self::$map;
 	}
 
+	static function get_map() {
+		if ( ! is_array(self::$map) )
+			return self::make_map();
+
+		return self::$map;
+	}
+
+	static function get_var($key = '') {
+		if ( empty($key) )
+			return self::$query_vars;
+
+		return self::$query_vars[$key];
+	}
+
+	static function get_other_vars() {
+		return self::$other_keys;
+	}
+
 	private static function collect_query_vars() {
 		if ( is_admin() || empty(self::$map) )
 			return false;
 
 		$keys = array_keys(self::$map);
 
-		foreach ( $_GET as $key => $value )
-			if ( in_array($key, $keys) )
-				self::$query_vars[$key] = $value;
+		self::$query_vars = scbUtil::array_extract($_GET, $keys);
 
 		foreach ( $keys as $key ) {
 			$min = @$_GET["$key-min"];
@@ -122,6 +119,8 @@ abstract class CFT_core {
 			if ( $min || $max )
 				self::$query_vars[$key] = compact('min', 'max');
 		}
+
+		self::$other_query_vars = scbUtil::array_extract($_GET, self::$other_keys);
 
 		self::$query_vars = apply_filters('cft_query_vars', self::$query_vars, self::$map);
 
@@ -224,15 +223,6 @@ abstract class CFT_core {
 		return apply_filters('cft_get_values', $values, $key, $auth_id, $limit, $hint);
 	}
 
-	private static function terms_clause($str) {
-		if ( empty($str) )
-			return '';
-
-		$terms = preg_split('/[\s,]+/', $str);
-
-		return '(' . array_to_sql($terms) . ')';
-	}
-
 	static function get_meta_url($key, $value, $relative = false) {
 		if ( is_singular() )
 			$relative = false;
@@ -247,17 +237,7 @@ abstract class CFT_core {
 		return apply_filters('cft_get_url', $url, $key, $value, $relative);
 	}
 
-	static function get_current_url() {
-		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
-
-		if ( $_SERVER["SERVER_PORT"] != "80" )
-			$pageURL .= $_SERVER["SERVER_NAME"]. ":" .$_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
-		else
-			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
-
-		return $pageURL;
-	}
-
+/*
 	// not used (buggy)
 	static function make_canonical() {
 		// Get canonical location (shouldn't be relative for single posts)
@@ -271,6 +251,27 @@ abstract class CFT_core {
 
 		wp_redirect($location, 301);
 		die;
+	}
+
+	static function get_current_url() {
+		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
+
+		if ( $_SERVER["SERVER_PORT"] != "80" )
+			$pageURL .= $_SERVER["SERVER_NAME"]. ":" .$_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
+		else
+			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+
+		return $pageURL;
+	}
+*/
+
+	private static function terms_clause($str) {
+		if ( empty($str) )
+			return '';
+
+		$terms = preg_split('/[\s,]+/', $str);
+
+		return '(' . scbUtil::array_to_sql($terms) . ')';
 	}
 
 	static function debug() {
