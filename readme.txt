@@ -3,13 +3,13 @@ Contributors: scribu
 Donate link: http://scribu.net/wordpress
 Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.8
-Tested up to: 2.9-rare
+Tested up to: 2.9-beta-2
 Stable tag: 1.4
 
 Use custom fields like regular post tags, sort posts based on custom fields and much more
 
 == Description ==
-With this powerfull plugin you can enhance your site by making custom fields act like post tags.
+With this powerfull plugin you can enhance your site navigation by sorting posts in various ways, based on custom field values.
 
 = Filter posts in new ways =
 Simple example:
@@ -29,7 +29,7 @@ On the settings page, besides choosing which custom fields should be searchable,
 * remove duplicate custom fields
 * add default values for certain custom field keys
 
-= Use the new theme template =
+= Use a new theme template =
 If you want post sorted by metadata to be displayed differently you can:
 Copy `meta.php` from the plugin directory to your current theme directory. You can modify it to fit your theme as necessary.
 
