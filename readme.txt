@@ -29,6 +29,10 @@ On the settings page, besides choosing which custom fields should be searchable,
 * remove duplicate custom fields
 * add default values for certain custom field keys
 
+= Use the new theme template =
+If you want post sorted by metadata to be displayed differently you can:
+Copy `meta.php` from the plugin directory to your current theme directory. You can modify it to fit your theme as necessary.
+
 = Customize your theme with template tags =
 
 The plugin features several template tags that will help you display item information easily:
@@ -43,10 +47,6 @@ The plugin features several template tags that will help you display item inform
 * `meta_relevance()` displays a percentage that indicates how many key=value pair matches a post has
 
 You can find out more about the available template tags by looking in the **template-tags.php** file
-
-= Use the new theme template =
-If you want post sorted by metadata to be displayed differently you can:
-Copy meta.php from the plugin directory to your current theme directory. You can modify it to fit your theme as necessary.
 
 == Installation ==
 
@@ -81,8 +81,10 @@ Make sure your new host is running PHP 5. Add this line to wp-config.php:
 
 == Changelog ==
 
-= 1.4.1 =
+= 1.5 =
+* added meta_orderby & meta_order parameters
 * fix bug in settings page
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-5.html)
 
 = 1.4 =
 * added support for ranges: ?price-min=100&price-max=300
