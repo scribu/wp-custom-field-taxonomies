@@ -6,7 +6,7 @@ Requires at least: 2.8
 Tested up to: 2.9-rare
 Stable tag: 1.4
 
-Use custom fields like regular post tags
+Use custom fields like regular post tags, sort posts based on custom fields and much more
 
 == Description ==
 With this powerfull plugin you can enhance your site by making custom fields act like post tags.
