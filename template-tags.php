@@ -79,7 +79,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
 		'exclude' => '', 'include' => '', 'link' => 'view'
 	));
 
-	$tempArgs = array_slice_assoc($cloudArgs, array('number', 'exclude', 'include', 'orderby', 'order'));
+	$tempArgs = scbUtil::array_extract($cloudArgs, array('number', 'exclude', 'include', 'orderby', 'order'));
 	$tempArgs['auth_id'] = $auth_id;
 
 	$tags = CFT_core::get_meta_values($key, $tempArgs);
