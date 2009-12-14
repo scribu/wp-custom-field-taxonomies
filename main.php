@@ -23,36 +23,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-_cft_init();
-function _cft_init() {
-	// Load scbFramework
-	require_once dirname(__FILE__) . '/scb/load.php';
-
-	$options = new scbOptions('cf_taxonomies', __FILE__, array(
-		'map' => '',
-		'relevance' => true,
-		'rank_by_order' => false,
-		'allow_and' => false,
-		'allow_or' => false,
-	));
-
-	CFT_core::init($options);
-	CFT_filter_box::init();
-
-	require_once dirname(__FILE__) . '/template-tags.php';
-
-	if ( is_admin() ) {
-		require_once dirname(__FILE__) . '/admin.php';
-		new settingsCFT(__FILE__, $options, CFT_core::make_map());
-	}
-
-	// DEBUG
-	if ( CFT_DEBUG === true )
-		add_action('wp_footer', array('CFT_core', 'debug'));
-}
-
-abstract class CFT_core {
-	const ver = '1.4.1';
+class CFT_core {
+	const ver = '1.5';
 	static $options;
 
 	private static $map;
@@ -327,4 +299,49 @@ class CFT_filter_box {
 		die;
 	}
 }
+
+/*
+class CFT_rewrite extends scbRewrite {
+	function generate() {
+		global $wp_rewrite, $wp;
+
+		$tags = array_keys(CFT_core::get_map());
+
+		foreach ( $tags as $tag ) {
+			$wp->add_query_var($tag);
+			$wp_rewrite->add_rewrite_tag("%$tag%", '([^/]+)', "$tag=");
+			$wp_rewrite->add_permastruct($tag, "/%$tag%");
+		}
+	}
+}
+*/
+
+function _cft_init() {
+	// Load scbFramework
+	require_once dirname(__FILE__) . '/scb/load.php';
+
+	$options = new scbOptions('cf_taxonomies', __FILE__, array(
+		'map' => '',
+		'relevance' => true,
+		'rank_by_order' => false,
+		'allow_and' => false,
+		'allow_or' => false,
+	));
+
+	CFT_core::init($options);
+	CFT_filter_box::init();
+
+	require_once dirname(__FILE__) . '/template-tags.php';
+
+	if ( is_admin() ) {
+		require_once dirname(__FILE__) . '/admin.php';
+		new settingsCFT(__FILE__, $options, CFT_core::make_map());
+	}
+
+	// DEBUG
+	if ( CFT_DEBUG === true )
+		add_action('wp_footer', array('CFT_core', 'debug'));
+}
+
+_cft_init();
 
