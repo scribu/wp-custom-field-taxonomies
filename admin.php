@@ -158,7 +158,7 @@ class settingsCFT extends scbBoxesPage {
 		));
 	
 		$form = 
-		html('p', 'In {$select} taxonomy, add default value:')
+		html('p', "In {$select} taxonomy, add default value:")
 		.html('p', 
 			'<input class="regular-text" name="default_value" value="" type="text" />'
 			.'<input class="button" name="add_default" value="Go" type="submit" />'
