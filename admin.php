@@ -5,6 +5,8 @@ class settingsCFT extends scbBoxesPage {
 	private $map;
 	private $sr_row;
 
+	private $columns = array('key', 'query_var', 'title');
+
 	function __construct($file, $options, $map) {
 		$this->map = $map;
 
@@ -18,10 +20,10 @@ class settingsCFT extends scbBoxesPage {
 		$this->boxes = array(
 			array('taxonomies', 'Register Taxonomies', 'normal'),
 			array('settings', 'Settings', 'normal'),
-			array('replace_values', 'Replace Values', 'side'),
-			array('replace_keys', 'Replace Keys', 'side'),
+			array('replace_values', 'Replace CF Values', 'side'),
+			array('replace_keys', 'Replace CF Keys', 'side'),
 			array('add_default', 'Add Default Value', 'side'),
-			array('duplicates', 'Remove duplicates', 'side'),
+			array('duplicates', 'Remove Duplicate Values', 'side'),
 		);
 
 		// Used by search & replace boxes
@@ -192,7 +194,7 @@ $wpdb->show_errors = true;
 	}
 
 	function duplicates_box() {
-		echo html('p', 'If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.');
+		echo html('p', 'Have duplicate custom fields ( key=value ) on the same post might cause errors with this plugin. Clicking the button bellow will remove these duplicates.');
 		echo html('p', 'Please <strong>backup</strong> your database first.');
 
 		echo $this->form_wrap('', 'Remove duplicates');
@@ -258,21 +260,59 @@ $wpdb->show_errors = true;
 		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
 		$restricted_keys = array_merge($restricted_keys, CFT_core::get_other_vars());
 
-		foreach ( (array) $_POST['key'] as $i => $key ) {
-			$key = sanitize_title_with_dashes($key);
+		$new_map = $query_vars = $errors = array();
 
-			if ( empty($key) || in_array($key, $restricted_keys) )
+		$row_count = count((array) $_POST['key']);
+
+		for ( $i = 0; $i < $row_count; $i++) {
+			foreach ( $this->columns as $column )
+				$$column = trim($_POST[$column][$i]); 
+
+			if ( empty($key) )
 				continue;
 
-			$new_map[$key] = trim($_POST['title'][$i]);
+			if ( empty($query_var) )
+				$query_var = $key;
+
+			$query_var = sanitize_title_with_dashes($query_var);
+
+			if ( empty($query_var) ) {
+				$errors[] = sprintf('Empty URL key for "%1$s"', $key);
+				continue;
+			}
+
+			if ( in_array($query_var, $restricted_keys) ) {
+				$errors[] = sprintf('Restricted URL key: "%1$s"', $query_var);
+				continue;
+			}
+
+			if ( in_array($query_var, $query_vars) ) {
+				$errors[] = sprintf('Duplicate URL key: "%1$s" for CF key "%2$s"', $query_var, $key);
+				continue;
+			}
+
+			$query_vars[] = $query_var;
+
+			if ( empty($title) )
+				$title = ucfirst($key);
+
+			$new_map[$key] = compact('query_var', 'title');
 		}
 
-		$this->options->set('map', $new_map);
+		$this->options->map = $new_map;
 
-		// Rebuild map
-		$this->map = CFT_core::make_map();
+		$msg = 'Taxonomies <strong>saved</strong>.';
 
-		$this->admin_msg("Taxonomies <strong>saved</strong>.");
+		if ( !empty($errors) ) {
+			$msg .= '</p<p>' . 'Errors:';
+			$list = '';
+			foreach ( $errors as $error )
+				$list .= html('li', $error);
+
+			$msg .= html('ul', $list);
+		}
+
+		$this->admin_msg($msg);
 	}
 
 	function taxonomies_box() {
@@ -288,17 +328,19 @@ $wpdb->show_errors = true;
 
 		$map = $this->options->map;
 		if ( empty($map) )
-			$map = array('' => '');
+			$map = array('' => array());
 
 		$tbody = '';
-		foreach ( $map as $key => $title ) {
+		foreach ( $map as $key => $args ) {
+			extract($args, EXTR_SKIP);
+
 			$trow = '';
-			foreach ( array('key', 'url', 'title') as $column )
+			foreach ( $this->columns as $column )
 				$trow .= html('td', 
 					"\n\t\t" . $this->input(array(
 						'type' => 'text',
 						'names' => $column . '[]',
-						'values' => $$column,
+						'values' => @$$column,
 						'desc' => false,
 				)), "\n\t");
 

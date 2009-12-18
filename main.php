@@ -24,10 +24,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 class CFT_core {
-	const ver = '1.5';
+	const ver = '1.5';		// for cache busting
+
 	static $options;
 
-	private static $map;
 	private static $query_vars;
 	private static $other_keys = array('meta_orderby', 'meta_order');
 	private static $other_query_vars;
@@ -35,7 +35,12 @@ class CFT_core {
 	static function init($options) {
 		self::$options = $options;
 
-		self::make_map();
+		// Install / uninstall
+		register_activation_hook(__FILE__, array(__CLASS__, 'upgrade'));
+
+#DEBUG
+self::upgrade();
+#DEBUG
 
 		if ( ! self::collect_query_vars() )
 			return false;
@@ -48,21 +53,28 @@ class CFT_core {
 		add_filter('wp_title', array(__CLASS__, 'set_title'), 20, 3);
 	}
 
-	static function make_map() {
-		self::$map = (array) self::$options->map;
+	static function upgrade() {
+		$map = (array) self::$options->map;
 
-		foreach ( self::$map as $key => $name )
-			if ( empty($name) )
-				self::$map[$key] = ucfirst($key);
+		// CFT < 1.5
+		if ( is_array(reset($map)) )
+			return;
 
-		return self::$map;
+		foreach ( $map as $cf_key => $title ) {
+			if ( !$title )
+				$title = ucfirst($cf_key);
+
+			$map[$cf_key] = array(
+				'query_var' => $cf_key,
+				'title' => $title
+			);
+		}
+
+		self::$options->map = $map;
 	}
 
 	static function get_map() {
-		if ( ! is_array(self::$map) )
-			return self::make_map();
-
-		return self::$map;
+		return self::$options->map;
 	}
 
 	static function get_var($key = '') {
@@ -77,10 +89,10 @@ class CFT_core {
 	}
 
 	private static function collect_query_vars() {
-		if ( is_admin() || empty(self::$map) )
+		if ( is_admin() || empty(self::$options->map) )
 			return false;
 
-		$keys = array_keys(self::$map);
+		$keys = array_keys(self::$options->map);
 
 		self::$query_vars = scbUtil::array_extract($_GET, $keys);
 
@@ -94,7 +106,7 @@ class CFT_core {
 
 		self::$other_query_vars = scbUtil::array_extract($_GET, self::$other_keys);
 
-		self::$query_vars = apply_filters('cft_query_vars', self::$query_vars, self::$map);
+		self::$query_vars = apply_filters('cft_query_vars', self::$query_vars, self::$options->map);
 
 		return ! empty(self::$query_vars);
 	}
@@ -137,7 +149,7 @@ class CFT_core {
 // Helper methods
 
 	static function is_defined($key) {
-		if ( ! $r = in_array($key, array_keys(self::$map)) )
+		if ( ! $r = in_array($key, array_keys(self::$options->map)) )
 			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
 
 		return $r;
@@ -321,7 +333,7 @@ function _cft_init() {
 	require_once dirname(__FILE__) . '/scb/load.php';
 
 	$options = new scbOptions('cf_taxonomies', __FILE__, array(
-		'map' => '',
+		'map' => array(),
 		'relevance' => true,
 		'rank_by_order' => false,
 		'allow_and' => false,
@@ -335,7 +347,7 @@ function _cft_init() {
 
 	if ( is_admin() ) {
 		require_once dirname(__FILE__) . '/admin.php';
-		new settingsCFT(__FILE__, $options, CFT_core::make_map());
+		new settingsCFT(__FILE__, $options, CFT_core::get_map());
 	}
 
 	// DEBUG
