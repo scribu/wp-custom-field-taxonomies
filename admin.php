@@ -2,6 +2,9 @@
 
 // Adds the CFT Settings page
 class settingsCFT extends scbBoxesPage {
+	private $map;
+	private $sr_row;
+
 	function __construct($file, $options, $map) {
 		$this->map = $map;
 
@@ -21,16 +24,15 @@ class settingsCFT extends scbBoxesPage {
 			array('duplicates', 'Remove duplicates', 'side'),
 		);
 
-		// Used by search and replace boxes
-		$this->sr_row = '
-		<tr>
-			<td>Replace %1$s</td>
-			<td><input class="regular-text" name="%1$s_search" value="" type="text" /></td>
-			<td class="with">with</td>
-			<td><input class="regular-text" name="%1$s_replace" value="" type="text" /></td>
-			<td><input class="button" name="%1$s_action" value="Go" type="submit" /></td>
-		</tr>
-		';
+		// Used by search & replace boxes
+		$this->sr_row = 
+		html('tr',
+			html('td', 'Replace %1$s')
+			.html('td', '<input class="regular-text" name="%1$s_search" value="" type="text" />')
+			.html('td class="with"', 'with')
+			.html('td', '<input class="regular-text" name="%1$s_replace" value="" type="text" />')
+			.html('td', '<input class="button" name="%1$s_action" value="Go" type="submit" />')
+		);
 
 		// Suggest
 		add_action('wp_ajax_meta-search', array($this, 'ajax_meta_search'));
@@ -39,22 +41,20 @@ class settingsCFT extends scbBoxesPage {
 	}
 
 	function page_head() {
-		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_core::ver);
 		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_core::ver);
+		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_core::ver);
 	}
 
 	function replace_values_handler() {
 		if ( !isset($_POST["value_action"]) )
 			return;
-	
+
 		global $wpdb;
 
-		$search = $wpdb->escape($_POST["value_search"]);
-		$replace = $wpdb->escape($_POST["value_replace"]);
-		$key = $wpdb->escape($_POST["value_key"]);
+		$what = array('meta_value' => $_POST["value_replace"]);
+		$where = array('meta_value' => $_POST["value_search"]);
 
-		$what = array('meta_value' => $replace);
-		$where = array('meta_value' => $search);
+		$key = $_POST["value_key"];
 
 		if ( $key != '*' )
 			$where['meta_key'] = $key;
@@ -64,7 +64,7 @@ class settingsCFT extends scbBoxesPage {
 		$message = "Replaced <strong>{$count}</strong> values: <em>{$search}</em> &raquo; <em>{$replace}</em>";
 
 		if ( $key != '*' )
-			$message .= " in <em>{$this->map[$key]}</em> taxonomy.</p>";
+			$message .= " in <em>{$this->map[$key]}</em> taxonomy.";
 		else
 			$message .= ".";
 
@@ -79,11 +79,13 @@ class settingsCFT extends scbBoxesPage {
 			'value' => $this->map
 		));
 
-		$form = array();
-		$form[] = "<p>In {$select} taxonomy, ";
-		$form[] = sprintf("<table>{$this->sr_row}</table>\n", 'value');
-		$form[] = '</p>';
-		echo $this->form_wrap(implode("\n", $form), false);
+		$form = 
+		html('p', 
+			"In {$select} taxonomy, "
+			.html('table', sprintf($this->sr_row, 'value'))
+		);
+
+		echo $this->form_wrap($form, false);
 	}
 
 
@@ -105,7 +107,7 @@ class settingsCFT extends scbBoxesPage {
 	}
 
 	function replace_keys_box() {
-		echo $this->form_wrap(sprintf("<table>{$this->sr_row}</table>\n", 'key'), false);
+		echo $this->form_wrap(html('table', sprintf($this->sr_row, 'key'), false);
 	}
 
 
@@ -155,13 +157,15 @@ class settingsCFT extends scbBoxesPage {
 			'value' => $this->map
 		));
 	
-		$form = array();
-		$form[] = "<p>In {$select} taxonomy, add default value:</p>";
-		$form[] = '<p><input class="regular-text" name="default_value" value="" type="text" />';
-		$form[] = '<input class="button" name="add_default" value="Go" type="submit" /></p>';
+		$form = 
+		html('p', 'In {$select} taxonomy, add default value:')
+		html('p', 
+			'<input class="regular-text" name="default_value" value="" type="text" />'
+			.'<input class="button" name="add_default" value="Go" type="submit" />'
+		);
 
-		echo $this->form_wrap(implode("\n", $form), false);
-		echo '<p>This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you add a new taxonomy.</p>';
+		echo $this->form_wrap($form, false);
+		echo html('p', 'This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you add a new taxonomy.');
 	}
 
 
@@ -188,8 +192,9 @@ $wpdb->show_errors = true;
 	}
 
 	function duplicates_box() {
-		echo "<p>If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.</p>";
-		echo "<p>Please <strong>backup</strong> your database first.</p>\n";
+		echo html('p', 'If on the same post you have duplicate custom fields ( key=value ), then this plugin might not display the right posts. Clicking the button bellow will fix this problem.');
+		echo html('p', 'Please <strong>backup</strong> your database first.');
+
 		echo $this->form_wrap('', 'Remove duplicates');
 	}
 
@@ -240,7 +245,7 @@ $wpdb->show_errors = true;
 
 		$output = '';
 		foreach ( $rows as $row )
-			$output .= "<p>" . $this->input($row, $this->options->get() ) . "</p>\n";
+			$output .= html('p', $this->input($row, $this->options->get()));
 
 		echo $this->form_wrap($output, 'Save settings');
 	}
@@ -271,22 +276,20 @@ $wpdb->show_errors = true;
 	}
 
 	function taxonomies_box() {
-		ob_start();
-?>
-	<table class="widefat">
-	  <thead>
-		<tr>
-			<th scope="col">Key</th>
-			<th scope="col">Title</th>
-			<th scope="col"></th>
-		</tr>
-	  </thead>
-	  <tbody>
-<?php
+		$thead = 
+		html('thead',
+			html('tr',
+				html('th scope="col"', 'Key')
+				.html('th scope="col"', 'URL')
+				.html('th scope="col"', 'Title')
+			)
+		);
+
 		$map = $this->options->get('map');
 		if ( empty($map) )
 			$map = array('' => '');
 
+		$tbody = '';
 		foreach ( $map as $key => $title ) {
 			$rows = array(
 				array(
@@ -297,26 +300,37 @@ $wpdb->show_errors = true;
 				),
 				array(
 					'type' => 'text',
+					'names' => 'url[]',
+					'values' => $url,
+					'desc' => false,
+				),
+				array(
+					'type' => 'text',
 					'names' => 'title[]',
 					'values' => $title,
 					'desc' => false,
 				)
 			);
 
-			echo "<tr>\n";
+			$trow = '';
 			foreach ( $rows as $row )
-				echo "\t<td>{$this->input($row)}</td>\n";
-			echo "\t<td class='delete'><a href='#'>Delete</a></td>\n";
-			echo "</tr>\n";
+				$trow .= html('td', $this->input($row));
+			$trow .= html('td class="delete"', html_link('#', 'Delete'));
+
+			$tbody .= html('tr', $trow);
 		}
-?>
-		<tr>
-			<td colspan="3"><a id="add" href="#">Add row</a></td>
-		</tr>
-	  </tbody>
-	</table>
-<?php
-		echo $this->form_wrap(ob_get_clean(), 'Save taxonomies', 'action', 'button no-ajax');
+		
+		$tbody .= html('tr', 
+			html('td colspan="4"', 
+				html('a id="add" href="#"', 'Add row')
+			)
+		);
+
+		$tbody .= html('tbody', $tbody);
+
+		$table = html('table class="widefat"', $thead.$tbody);
+
+		echo $this->form_wrap($table, 'Save taxonomies', 'action', 'button no-ajax');
 	}
 
 
