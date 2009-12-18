@@ -107,7 +107,7 @@ class settingsCFT extends scbBoxesPage {
 	}
 
 	function replace_keys_box() {
-		echo $this->form_wrap(html('table', sprintf($this->sr_row, 'key'), false);
+		echo $this->form_wrap(html('table', sprintf($this->sr_row, 'key')), false);
 	}
 
 
@@ -159,12 +159,12 @@ class settingsCFT extends scbBoxesPage {
 	
 		$form = 
 		html('p', 'In {$select} taxonomy, add default value:')
-		html('p', 
+		.html('p', 
 			'<input class="regular-text" name="default_value" value="" type="text" />'
 			.'<input class="button" name="add_default" value="Go" type="submit" />'
 		);
-
 		echo $this->form_wrap($form, false);
+
 		echo html('p', 'This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you add a new taxonomy.');
 	}
 
@@ -279,54 +279,45 @@ $wpdb->show_errors = true;
 		$thead = 
 		html('thead',
 			html('tr',
-				html('th scope="col"', 'Key')
-				.html('th scope="col"', 'URL')
+				html('th scope="col"', 'CF Key')
+				.html('th scope="col"', 'URL Key')
 				.html('th scope="col"', 'Title')
+				.html('th scope="col"', '')
 			)
 		);
 
-		$map = $this->options->get('map');
+		$map = $this->options->map;
 		if ( empty($map) )
 			$map = array('' => '');
 
 		$tbody = '';
 		foreach ( $map as $key => $title ) {
-			$rows = array(
-				array(
-					'type' => 'text',
-					'names' => 'key[]',
-					'values' => $key,
-					'desc' => false,
-				),
-				array(
-					'type' => 'text',
-					'names' => 'url[]',
-					'values' => $url,
-					'desc' => false,
-				),
-				array(
-					'type' => 'text',
-					'names' => 'title[]',
-					'values' => $title,
-					'desc' => false,
-				)
-			);
-
 			$trow = '';
-			foreach ( $rows as $row )
-				$trow .= html('td', $this->input($row));
-			$trow .= html('td class="delete"', html_link('#', 'Delete'));
+			foreach ( array('key', 'url', 'title') as $column )
+				$trow .= html('td', 
+					"\n\t\t" . $this->input(array(
+						'type' => 'text',
+						'names' => $column . '[]',
+						'values' => $$column,
+						'desc' => false,
+				)), "\n\t");
 
-			$tbody .= html('tr', $trow);
+			$trow .= html('td class="delete"', 
+				"\n\t\t" . html_link('#', 'Delete')
+			, "\n\t");
+
+			$tbody .= html('tr', $trow, "\n");
 		}
-		
+
+//*		
 		$tbody .= html('tr', 
 			html('td colspan="4"', 
 				html('a id="add" href="#"', 'Add row')
 			)
 		);
+/**/
 
-		$tbody .= html('tbody', $tbody);
+		$tbody = html('tbody', $tbody);
 
 		$table = html('table class="widefat"', $thead.$tbody);
 
