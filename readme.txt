@@ -3,7 +3,7 @@ Contributors: scribu
 Donate link: http://scribu.net/wordpress
 Tags: custom fields, meta, metadata, taxonomy, sort, cms
 Requires at least: 2.8
-Tested up to: 2.9-beta-2
+Tested up to: 2.9
 Stable tag: 1.4
 
 Use custom fields like regular post tags, sort posts based on custom fields and much more
@@ -83,6 +83,7 @@ Make sure your new host is running PHP 5. Add this line to wp-config.php:
 
 = 1.5 =
 * added meta_orderby & meta_order parameters
+* added URL key field
 * fix bug in settings page
 * [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-5.html)
 

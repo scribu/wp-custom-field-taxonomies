@@ -51,6 +51,10 @@ self::upgrade();
 		// Customize template and title
 		add_action('template_redirect', array(__CLASS__, 'add_template'), 999);
 		add_filter('wp_title', array(__CLASS__, 'set_title'), 20, 3);
+		
+		// DEBUG
+		if ( CFT_DEBUG === true )
+			add_action('wp_footer', array(__CLASS__, 'debug'));
 	}
 
 	static function upgrade() {
@@ -347,12 +351,8 @@ function _cft_init() {
 
 	if ( is_admin() ) {
 		require_once dirname(__FILE__) . '/admin.php';
-		new settingsCFT(__FILE__, $options, CFT_core::get_map());
+		new settingsCFT(__FILE__, $options);
 	}
-
-	// DEBUG
-	if ( CFT_DEBUG === true )
-		add_action('wp_footer', array('CFT_core', 'debug'));
 }
 
 _cft_init();

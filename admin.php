@@ -2,14 +2,9 @@
 
 // Adds the CFT Settings page
 class settingsCFT extends scbBoxesPage {
-	private $map;
 	private $sr_row;
 
-	private $columns = array('key', 'query_var', 'title');
-
-	function __construct($file, $options, $map) {
-		$this->map = $map;
-
+	function setup() {
 		$this->args = array(
 			'page_title' => 'Custom Field Taxonomies',
 			'menu_title' => 'CF Taxonomies',
@@ -38,8 +33,6 @@ class settingsCFT extends scbBoxesPage {
 
 		// Suggest
 		add_action('wp_ajax_meta-search', array($this, 'ajax_meta_search'));
-
-		parent::__construct($file, $options);
 	}
 
 	function page_head() {
@@ -56,7 +49,7 @@ class settingsCFT extends scbBoxesPage {
 		$what = array('meta_value' => $_POST["value_replace"]);
 		$where = array('meta_value' => $_POST["value_search"]);
 
-		$key = $_POST["value_key"];
+		$key = trim($_POST["value_key"]);
 
 		if ( $key != '*' )
 			$where['meta_key'] = $key;
@@ -66,7 +59,7 @@ class settingsCFT extends scbBoxesPage {
 		$message = "Replaced <strong>{$count}</strong> values: <em>{$search}</em> &raquo; <em>{$replace}</em>";
 
 		if ( $key != '*' )
-			$message .= " in <em>{$this->map[$key]}</em> taxonomy.";
+			$message .= " in <em>$key</em> custom field.";
 		else
 			$message .= ".";
 
@@ -78,7 +71,7 @@ class settingsCFT extends scbBoxesPage {
 			'type' => 'select',
 			'name' => 'value_key',
 			'text' => '(any)',
-			'value' => $this->map
+			'value' => array_keys($this->options->map)
 		));
 
 		$form = 
@@ -137,7 +130,7 @@ class settingsCFT extends scbBoxesPage {
 		");
 
 		if ( empty($ids) ) {
-			$this->admin_msg("All posts have values for <em>{$this->map[$key]}</em> taxonomy.");
+			$this->admin_msg("All posts have values for <em>{$key}</em> CF.");
 			return;
 		}
 
@@ -148,7 +141,7 @@ class settingsCFT extends scbBoxesPage {
 
 		$count = (int) $wpdb->query("INSERT INTO {$wpdb->postmeta}(post_id, meta_key, meta_value) VALUES $values");
 
-		$this->admin_msg("Added {$this->map[$key]}: '{$value}' to <strong>{$count}</strong> posts.");
+		$this->admin_msg("Added $key: '{$value}' to <strong>{$count}</strong> posts.");
 	}
 
 	function add_default_box() {
@@ -156,7 +149,7 @@ class settingsCFT extends scbBoxesPage {
 			'type' => 'select',
 			'name' => 'default_key',
 			'text' => '(any)',
-			'value' => $this->map
+			'value' => array_keys($this->options->map)
 		));
 	
 		$form = 
@@ -252,6 +245,7 @@ $wpdb->show_errors = true;
 		echo $this->form_wrap($output, 'Save settings');
 	}
 
+	private $columns = array('key', 'query_var', 'title');
 
 	function taxonomies_handler() {
 		if ( 'Save taxonomies' != $_POST['action'] )
@@ -265,11 +259,16 @@ $wpdb->show_errors = true;
 		$row_count = count((array) $_POST['key']);
 
 		for ( $i = 0; $i < $row_count; $i++) {
-			foreach ( $this->columns as $column )
-				$$column = trim($_POST[$column][$i]); 
+			foreach ( $this->columns as $column ) {
+				$$column = trim($_POST[$column][$i]);
+				
+				debug($column, $$column);
+			}
 
-			if ( empty($key) )
+			if ( empty($key) ) {
+				$errors[] = 'Empty CF key';
 				continue;
+			}
 
 			if ( empty($query_var) )
 				$query_var = $key;
@@ -301,10 +300,10 @@ $wpdb->show_errors = true;
 
 		$this->options->map = $new_map;
 
-		$msg = 'Taxonomies <strong>saved</strong>.';
+		$msg = 'Meta taxonomies <strong>saved</strong>.';
 
 		if ( !empty($errors) ) {
-			$msg .= '</p<p>' . 'Errors:';
+			$msg .= '</p><p>' . 'Errors:';
 			$list = '';
 			foreach ( $errors as $error )
 				$list .= html('li', $error);
@@ -327,12 +326,13 @@ $wpdb->show_errors = true;
 		);
 
 		$map = $this->options->map;
+		
 		if ( empty($map) )
 			$map = array('' => array());
 
 		$tbody = '';
 		foreach ( $map as $key => $args ) {
-			extract($args, EXTR_SKIP);
+			extract($args);
 
 			$trow = '';
 			foreach ( $this->columns as $column )
@@ -363,7 +363,7 @@ $wpdb->show_errors = true;
 
 		$table = html('table class="widefat"', $thead.$tbody);
 
-		echo $this->form_wrap($table, 'Save taxonomies', 'action', 'button no-ajax');
+		echo $this->form_wrap($table, 'Save changes', 'action', 'button no-ajax');
 	}
 
 
