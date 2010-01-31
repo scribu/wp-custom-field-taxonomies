@@ -196,6 +196,7 @@ abstract class CFT_query {
 
 		self::set_penalties();
 
+		$posts = (array) $posts;
 		foreach ( $posts as $post ) {
 			// Get relevant keys
 			$values = get_post_custom($post->ID);
