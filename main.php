@@ -38,10 +38,6 @@ class CFT_core {
 		// Install / uninstall
 		register_activation_hook(__FILE__, array(__CLASS__, 'upgrade'));
 
-#DEBUG
-self::upgrade();
-#DEBUG
-
 		if ( ! self::collect_query_vars() )
 			return false;
 
@@ -53,7 +49,7 @@ self::upgrade();
 		add_filter('wp_title', array(__CLASS__, 'set_title'), 20, 3);
 		
 		// DEBUG
-		if ( CFT_DEBUG === true )
+		if ( defined('CFT_DEBUG') )
 			add_action('wp_footer', array(__CLASS__, 'debug'));
 	}
 
