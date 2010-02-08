@@ -240,34 +240,6 @@ if ( !empty($old_map) )
 		return apply_filters('cft_get_url', $url, $key, $value, $relative);
 	}
 
-/*
-	// not used (buggy)
-	static function make_canonical() {
-		// Get canonical location (shouldn't be relative for single posts)
-		$location = trailingslashit(get_bloginfo('url'));
-
-		foreach ( self::$query_vars as $key => $value )
-			$location = add_query_arg($key, urlencode($value), $location);
-
-		if ( self::get_current_url() == $location )
-			return; // all good
-
-		wp_redirect($location, 301);
-		die;
-	}
-
-	static function get_current_url() {
-		$pageURL = ($_SERVER["HTTPS"] == "on") ? 'https://' : 'http://';
-
-		if ( $_SERVER["SERVER_PORT"] != "80" )
-			$pageURL .= $_SERVER["SERVER_NAME"]. ":" .$_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
-		else
-			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
-
-		return $pageURL;
-	}
-*/
-
 	private static function terms_clause($str) {
 		if ( empty($str) )
 			return '';
