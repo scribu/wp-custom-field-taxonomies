@@ -35,7 +35,6 @@ class CFT_core {
 	static function init($options) {
 		self::$options = $options;
 
-		// Install / uninstall
 		register_activation_hook(__FILE__, array(__CLASS__, 'upgrade'));
 
 		if ( ! self::collect_query_vars() )
@@ -44,11 +43,9 @@ class CFT_core {
 		require_once dirname(__FILE__) . '/query.php';
 		CFT_query::init(self::$query_vars, self::$other_query_vars);
 
-		// Customize template and title
 		add_action('template_redirect', array(__CLASS__, 'add_template'), 999);
 		add_filter('wp_title', array(__CLASS__, 'set_title'), 20, 3);
 		
-		// DEBUG
 		if ( defined('CFT_DEBUG') )
 			add_action('wp_footer', array(__CLASS__, 'debug'));
 	}
@@ -71,9 +68,29 @@ class CFT_core {
 		}
 
 		self::$options->map = $map;
+		
+// DOWNGRADE
+/*
+foreach ( self::$options->map as $key => $value ) {
+	if ( ! is_array($value) )
+		break;
+		
+	$old_map[$key] = $value['title'];
+}
+if ( !empty($old_map) )
+	self::$options->map = $old_map;
+*/
 	}
 
-	static function get_map() {
+	static function get_map($raw = false) {
+		$r = array();
+		foreach ( self::$options->map as $args )
+			$r[$args['query_var']] = $args['title'];
+
+		return $r;
+	}
+
+	static function get_raw_map() {
 		return self::$options->map;
 	}
 
@@ -132,8 +149,10 @@ class CFT_core {
 	}
 
 	static function get_meta_title($format = '%name%: %value%', $between = '; ') {
+		$map = CFT_core::get_map();
+	
 		foreach ( CFT_core::$query_vars as $key => $value ) {
-			$name = CFT_core::$map[$key];
+			$name = $map[$key];
 
 			if ( is_array($value) )
 				$value = esc_html($value['min']) . ' &mdash; ' . esc_html($value['max']);
@@ -268,7 +287,7 @@ class CFT_core {
 }
 
 // Sets up scripts and AJAX suggest
-class CFT_filter_box {
+class CFT_Filter_Box {
 	const ajax_key = 'ajax-meta-search';
 
 	static function init() {
@@ -277,23 +296,15 @@ class CFT_filter_box {
 	}
 
 	static function scripts() {
-		global $wp_scripts;
+		$url = plugins_url('inc/', __FILE__);
 
-		$url = plugin_dir_url(__FILE__) . 'inc/';
-		$scriptf = "<script language='javascript' type='text/javascript' src='%s'></script>";
-
-		// CSS
-		$scripts[] = "<style type='text/css'>@import url('$url/filter-box.css');</style>";
-
-		// Dependencies
-		foreach ( array('jquery', 'suggest') as $name )
-			if ( ! @in_array($name, $wp_scripts->done) )
-				$scripts[] = sprintf($scriptf, trailingslashit(get_bloginfo('url')) . "wp-includes/js/jquery/$name.js");
+		wp_enqueue_script('cft-filter-box', $url . 'filter-box.js', array('jquery', 'suggest'), '1.5');
+		wp_print_scripts(array('cft-filter-box'));
 
 		$ajax_url = admin_url('admin-ajax.php?action=' . self::ajax_key . '&key=');
 
+		$scripts[] = "<style type='text/css'>@import url('$url/filter-box.css');</style>";
 		$scripts[] = "<script type='text/javascript'>window.cft_suggest_url = '" . $ajax_url . "';</script>";
-		$scripts[] = sprintf($scriptf, $url . 'filter-box.js');
 
 		echo implode("\n", $scripts);
 	}
@@ -305,7 +316,7 @@ class CFT_filter_box {
 		if ( ! CFT_core::is_defined($key) )
 			die(-1);
 
-		foreach ( CFT_core::get_meta_values($key, "number=10&hint=$hint") as $value )
+		foreach ( CFT_core::get_meta_values($key, array('number' => 10, 'hint' => $hint)) as $value )
 			echo $value->name . "\n";
 
 		die;
@@ -341,7 +352,7 @@ function _cft_init() {
 	));
 
 	CFT_core::init($options);
-	CFT_filter_box::init();
+	CFT_Filter_Box::init();
 
 	require_once dirname(__FILE__) . '/template-tags.php';
 

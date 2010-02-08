@@ -261,8 +261,6 @@ $wpdb->show_errors = true;
 		for ( $i = 0; $i < $row_count; $i++) {
 			foreach ( $this->columns as $column ) {
 				$$column = trim($_POST[$column][$i]);
-				
-				debug($column, $$column);
 			}
 
 			if ( empty($key) ) {
@@ -363,7 +361,7 @@ $wpdb->show_errors = true;
 
 		$table = html('table class="widefat"', $thead.$tbody);
 
-		echo $this->form_wrap($table, 'Save changes', 'action', 'button no-ajax');
+		echo $this->form_wrap($table, 'Save taxonomies', 'action', 'button no-ajax');
 	}
 
 

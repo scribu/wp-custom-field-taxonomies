@@ -119,6 +119,7 @@ abstract class CFT_query {
 			$case = '';
 
 		// AND SQL
+		$and_sql = '';
 		foreach ( $and as $key => $clause ) {
 			$count = count($clause);
 

@@ -106,7 +106,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
  * $exclude: an array of meta keys to be excluded
  */
 function meta_filter_box($exclude = array()) {
-	add_action('wp_footer', array(CFT_filter_box, 'scripts'));
+	add_action('wp_footer', array('CFT_Filter_Box', 'scripts'));
 
 	$map = CFT_core::get_map();
 
@@ -115,7 +115,7 @@ function meta_filter_box($exclude = array()) {
 
 	$select = scbForms::input(array(
 		'type' => 'select',
-		'name' => '',
+		'name' => 'cft_filter',
 		'value' => $map
 	));
 ?>
@@ -157,8 +157,8 @@ function meta_relevance($before = 'Relevance: ', $after = '', $echo = true) {
 
 
 /**
- * Get all defined taxonomies as an associative array
- * $key => $value
+ * Get all defined taxonomies as an associative array:
+ * $query_var => $title
  */
 function get_meta_taxonomies() {
 	return CFT_core::get_map();
