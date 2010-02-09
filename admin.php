@@ -39,12 +39,12 @@ class settingsCFT extends scbBoxesPage {
 		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_core::VERSION);
 		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_core::VERSION);
 	}
-	
+
 	function page_help() {
 		return
 		html('h5', 'Defining meta taxonomies:')
 		.html('ul',
-			html('li', 'CF Key - the custom field key')
+			html('li', 'CF Key - the custom field key (mandatory)')
 			.html('li', 'URL Key - the key in the URL: ?key=value')
 			.html('li', 'Title - a nice title for the field')
 		);
@@ -103,10 +103,10 @@ class settingsCFT extends scbBoxesPage {
 		$search = $wpdb->escape($_POST["key_search"]);
 		$replace = $wpdb->escape($_POST["key_replace"]);
 
-		$what = array('meta_key' => $replace);
-		$where = array('meta_key' => $search);
-
-		$count = (int) $wpdb->update($wpdb->postmeta, $what, $where);
+		$count = (int) $wpdb->update($wpdb->postmeta, 
+			array('meta_key' => $replace), 
+			array('meta_key' => $search),
+		);
 
 		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
 	}
@@ -149,7 +149,7 @@ class settingsCFT extends scbBoxesPage {
 			$values[] = "($id, '$key', '$value')";
 		$values = implode(',', $values);
 
-		$count = (int) $wpdb->query("INSERT INTO {$wpdb->postmeta}(post_id, meta_key, meta_value) VALUES $values");
+		$count = (int) $wpdb->query("INSERT INTO {$wpdb->postmeta} (post_id, meta_key, meta_value) VALUES $values");
 
 		$this->admin_msg("Added $key: '{$value}' to <strong>{$count}</strong> posts.");
 	}
@@ -170,7 +170,7 @@ class settingsCFT extends scbBoxesPage {
 		);
 		echo $this->form_wrap($form, false);
 
-		echo html('p', 'This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you add a new taxonomy.');
+		echo html('p', 'This will add a certain value to posts that don\'t already have a value for that taxonomy. Useful when you register a new taxonomy.');
 	}
 
 
@@ -179,8 +179,6 @@ class settingsCFT extends scbBoxesPage {
 			return;
 
 		global $wpdb;
-
-$wpdb->show_errors = true;
 
 		// MySQL doesn't allow SELECTing from the target table. Workaround is to create a temporary table
 		$count = (int) $wpdb->query("
@@ -221,8 +219,6 @@ $wpdb->show_errors = true;
 	}
 
 	function settings_box() {
-		echo $this->css_wrap(".url {font-family: 'Courier'; font-size: 110%}");
-
 		$rows = array(
 			array(
 				'type' => 'checkbox',
