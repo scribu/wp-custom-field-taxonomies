@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 class CFT_core {
-	const ver = '1.5';		// for cache busting
+	const VERSION = '1.5';
 
 	static $options;
 
@@ -43,9 +43,9 @@ class CFT_core {
 		require_once dirname(__FILE__) . '/query.php';
 		CFT_query::init(self::$query_vars, self::$other_query_vars);
 
-		add_action('template_redirect', array(__CLASS__, 'add_template'), 999);
-		add_filter('wp_title', array(__CLASS__, 'set_title'), 20, 3);
-		
+		add_action('template_redirect', array(__CLASS__, 'add_template'));
+		add_filter('wp_title', array(__CLASS__, 'set_title'), 10, 3);
+
 		if ( defined('CFT_DEBUG') )
 			add_action('wp_footer', array(__CLASS__, 'debug'));
 	}
@@ -109,23 +109,27 @@ if ( !empty($old_map) )
 		if ( is_admin() || empty(self::$options->map) )
 			return false;
 
-		$keys = array_keys(self::$options->map);
+		$keys = array_keys(self::get_map());
 
 		self::$query_vars = scbUtil::array_extract($_GET, $keys);
 
+		$types = array('min', 'max', 'like');
+
 		foreach ( $keys as $key ) {
-			$min = @$_GET["$key-min"];
-			$max = @$_GET["$key-max"];
+			$vars = array();
+			foreach ( $types as $type )
+				if ( isset($_GET["$key-$type"]) )
+					$vars[$type] = $_GET["$key-$type"];
 
-			if ( $min || $max )
-				self::$query_vars[$key] = compact('min', 'max');
+			if ( !empty($vars) )
+				self::$query_vars[$key] = $vars;
 		}
-
-		self::$other_query_vars = scbUtil::array_extract($_GET, self::$other_keys);
 
 		self::$query_vars = apply_filters('cft_query_vars', self::$query_vars, self::$options->map);
 
-		return ! empty(self::$query_vars);
+		self::$other_query_vars = scbUtil::array_extract($_GET, self::$other_keys);
+
+		return !empty(self::$query_vars) || !empty(self::$other_query_vars);
 	}
 
 	static function add_template() {
@@ -250,7 +254,9 @@ if ( !empty($old_map) )
 	}
 
 	static function debug() {
-		$query = $GLOBALS["wp_query"]->request;
+		global $wp, $wp_query;
+
+		$query = $wp_query->request;
 		foreach (array('FROM', 'JOIN', 'WHERE', 'AND', 'LIMIT', 'GROUP', 'ORDER', "\tWHEN", 'END') as $c)
 			$query = str_replace(trim($c), "\n".$c, $query);
 
@@ -270,7 +276,7 @@ class CFT_Filter_Box {
 	static function scripts() {
 		$url = plugins_url('inc/', __FILE__);
 
-		wp_enqueue_script('cft-filter-box', $url . 'filter-box.js', array('jquery', 'suggest'), '1.5');
+		wp_enqueue_script('cft-filter-box', $url . 'filter-box.js', array('jquery', 'suggest'), CFT_core::VERSION);
 		wp_print_scripts(array('cft-filter-box'));
 
 		$ajax_url = admin_url('admin-ajax.php?action=' . self::ajax_key . '&key=');

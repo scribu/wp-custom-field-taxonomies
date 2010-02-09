@@ -1,6 +1,6 @@
 <?php
 
-// Transform the query vars to SQL
+// Transform the query vars into SQL
 
 abstract class CFT_query {
 	private static $query_vars;
@@ -23,28 +23,26 @@ abstract class CFT_query {
 			'the_posts' => 'rank_by_order',
 		);
 
+		foreach ( self::$filters as $name => &$callback )
+			if ( empty($callback) )
+				$callback = $name;
+
 		// And add them
 		add_action('pre_get_posts', array(__CLASS__, 'add_filters'));
 	}
 
 	static function add_filters($obj) {
-		// Adds filters only to main query
+		// Operate only on the main query
 		if ( $GLOBALS['wp_query'] != $obj )
 			return;
 
-		foreach ( self::$filters as $name => $callback ) {
-			if ( empty($callback) )
-				$callback = $name;
+		foreach ( self::$filters as $name => $callback )
 			add_filter($name, array(__CLASS__, $callback));
-		}
 	}
 
 	static function remove_filters() {
-		foreach ( self::$filters as $name => $callback ) {
-			if ( empty($callback) )
-				$callback = $name;
+		foreach ( self::$filters as $name => $callback )
 			remove_filter($name, array(__CLASS__, $callback));
-		}
 	}
 
 	static function posts_fields($fields) {

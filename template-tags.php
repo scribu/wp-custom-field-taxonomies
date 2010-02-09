@@ -171,6 +171,7 @@ function get_meta_taxonomies() {
  * You can copy the following function into your functions.php theme file and modify it to your needs. (Don't forget to give it a different name)
  */
 function all_meta_info() {
+	$output = '';
 	foreach ( get_meta_taxonomies() as $key => $name ) {
 		$value = get_linked_meta(get_the_ID(), $key);
 
