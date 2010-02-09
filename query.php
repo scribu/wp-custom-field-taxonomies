@@ -86,11 +86,15 @@ abstract class CFT_query {
 
 				$case[$key] = $clause;
 
-				if ( $min && $max )
+				if ( isset($like) ) {
+					$like = '%' . like_escape(esc_sql($like)) . '%';
+					$case[$key] .= "LIKE('$like')";
+				}
+				elseif ( isset($min) && isset($max) )
 					$case[$key] .= $wpdb->prepare(">= %s AND meta_value <= %s", $min, $max);
-				elseif ( $min )
+				elseif ( isset($min) )
 					$case[$key] .= $wpdb->prepare(">= %s", $min);
-				else
+				elseif ( isset($max) )
 					$case[$key] .= $wpdb->prepare("<= %s", $max);
 			}
 			elseif ( CFT_core::$options->allow_and && FALSE !== strpos($value, ' ') ) {

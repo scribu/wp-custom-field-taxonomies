@@ -158,10 +158,15 @@ if ( !empty($old_map) )
 		foreach ( CFT_core::$query_vars as $key => $value ) {
 			$name = $map[$key];
 
-			if ( is_array($value) )
-				$value = esc_html($value['min']) . ' &mdash; ' . esc_html($value['max']);
-			else
+			if ( is_array($value) ) {
+				if ( isset($value['like']) )
+					$value = esc_html($value['like']);
+				elseif ( (isset($value['min']) || isset($value['max'])) )
+					$value = esc_html(@$value['min']) . ' &mdash; ' . esc_html(@$value['max']);
+			}
+			else {
 				$value = esc_html($value);
+			}
 
 			$title[] = str_replace(array('%name%', '%value%'), array($name, $value), $format);
 		}
