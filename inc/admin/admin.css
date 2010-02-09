@@ -4,9 +4,8 @@
 }
 
 .inside table.widefat th {
-	text-align: center;
 	background: #F1F1F1;
-	padding: 5px 8px 8px;
+	padding: 5px 0px 6px 13px;
 	line-height: 1;
 }
 

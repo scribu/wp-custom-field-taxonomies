@@ -36,8 +36,18 @@ class settingsCFT extends scbBoxesPage {
 	}
 
 	function page_head() {
-		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_core::ver);
-		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_core::ver);
+		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_core::VERSION);
+		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_core::VERSION);
+	}
+	
+	function page_help() {
+		return
+		html('h5', 'Defining meta taxonomies:')
+		.html('ul',
+			html('li', 'CF Key - the custom field key')
+			.html('li', 'URL Key - the key in the URL: ?key=value')
+			.html('li', 'Title - a nice title for the field')
+		);
 	}
 
 	function replace_values_handler() {
