@@ -50,6 +50,133 @@ class settingsCFT extends scbBoxesPage {
 		);
 	}
 
+	private $columns = array('key' => 'CF Key', 'query_var' => 'URL Key', 'title' => 'Title', 'numeric' => 'Numeric');
+
+	function taxonomies_handler() {
+		if ( 'Save taxonomies' != $_POST['action'] )
+			return;
+
+		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
+		$restricted_keys = array_merge($restricted_keys, CFT_core::get_other_vars());
+
+		$new_map = $query_vars = $errors = array();
+
+		$row_count = count((array) $_POST['key']);
+
+		for ( $i = 0; $i < $row_count; $i++) {
+			foreach ( array_keys($this->columns) as $column ) {
+				$$column = trim($_POST[$column][$i]);
+			}
+
+			if ( empty($key) ) {
+				$errors[] = 'Empty CF key';
+				continue;
+			}
+
+			if ( empty($query_var) )
+				$query_var = $key;
+
+			$query_var = sanitize_title_with_dashes($query_var);
+
+			if ( empty($query_var) ) {
+				$errors[] = sprintf('Empty URL key for "%1$s"', $key);
+				continue;
+			}
+
+			if ( in_array($query_var, $restricted_keys) ) {
+				$errors[] = sprintf('Restricted URL key: "%1$s"', $query_var);
+				continue;
+			}
+
+			if ( in_array($query_var, $query_vars) ) {
+				$errors[] = sprintf('Duplicate URL key: "%1$s" for CF key "%2$s"', $query_var, $key);
+				continue;
+			}
+
+			$query_vars[] = $query_var;
+
+			if ( empty($title) )
+				$title = ucfirst($key);
+
+			$new_map[$key] = compact('query_var', 'title');
+		}
+
+		$this->options->map = $new_map;
+
+		$msg = 'Meta taxonomies <strong>saved</strong>.';
+
+		if ( !empty($errors) ) {
+			$msg .= '</p><p>' . 'Errors:';
+			$list = '';
+			foreach ( $errors as $error )
+				$list .= html('li', $error);
+
+			$msg .= html('ul', $list);
+		}
+
+		$this->admin_msg($msg);
+	}
+
+	function taxonomies_box() {
+		$thead = '';
+		foreach ( array_values($this->columns) + array('') as $name )
+			$thead .= html('th scope="col"', $name);
+		$thead .= html('th scope="col"');
+		$thead = html('thead', html('tr', $thead));
+
+		$map = $this->options->map;
+		
+		if ( empty($map) )
+			$map = array('' => array());
+
+		$tbody = '';
+		$i = 0;
+		foreach ( $map as $key => $args ) {
+			extract($args);
+
+			$trow = '';
+			foreach ( array_keys($this->columns) as $column ) {
+				if ( 'numeric' == $column ) {
+					$trow .= html('td', 
+						"\n\t\t" . $this->input(array(
+							'type' => 'checkbox',
+							'name' => $column . '_' . $i,
+							'value' => $i,
+							'desc' => false,
+					)), "\n\t");
+				}
+				else {				
+					$trow .= html('td', 
+						"\n\t\t" . $this->input(array(
+							'type' => 'text',
+							'names' => $column . "[$i]",
+							'values' => @$$column,
+							'desc' => false,
+					)), "\n\t");
+				}
+			}
+
+			$trow .= html('td class="delete"', 
+				"\n\t\t" . html_link('#', 'Delete')
+			, "\n\t");
+
+			$tbody .= html('tr', $trow, "\n");
+			$i++;
+		}
+
+		$colspan = count($this->columns) + 1;
+		$tbody .= html('tr', 
+			html("td colspan='$colspan'",
+				html('a id="add" href="#"', 'Add row')
+			)
+		);
+		$tbody = html('tbody', $tbody);
+
+		$table = html('table class="widefat"', $thead.$tbody);
+
+		echo $this->form_wrap($table, 'Save taxonomies', 'action', 'button no-ajax');
+	}
+
 	function replace_values_handler() {
 		if ( !isset($_POST["value_action"]) )
 			return;
@@ -103,9 +230,9 @@ class settingsCFT extends scbBoxesPage {
 		$search = $wpdb->escape($_POST["key_search"]);
 		$replace = $wpdb->escape($_POST["key_replace"]);
 
-		$count = (int) $wpdb->update($wpdb->postmeta, 
+		$count = (int) $wpdb->update($wpdb->postmeta,
 			array('meta_key' => $replace), 
-			array('meta_key' => $search),
+			array('meta_key' => $search)
 		);
 
 		$this->admin_msg("Replaced <strong>{$count}</strong> keys: <em>{$search}</em> &raquo; <em>{$replace}</em>.");
@@ -229,7 +356,7 @@ class settingsCFT extends scbBoxesPage {
 				'type' => 'checkbox',
 				'names' => 'allow_and',
 				'desc' => "Allow <span class='url'>key=value1+value2</span> (value1 AND value2) queries
-							<br><strong style='margin-left:2em; line-height: 2'>Note</strong>: A '+' in the URL is equivalent to a <em>space</em>!"
+							<br /><strong style='margin-left:2em; line-height: 2'>Note</strong>: A '+' in the URL is equivalent to a <em>space</em>!"
 			),
 			array(
 				'type' => 'checkbox',
@@ -250,126 +377,6 @@ class settingsCFT extends scbBoxesPage {
 
 		echo $this->form_wrap($output, 'Save settings');
 	}
-
-	private $columns = array('key', 'query_var', 'title');
-
-	function taxonomies_handler() {
-		if ( 'Save taxonomies' != $_POST['action'] )
-			return;
-
-		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
-		$restricted_keys = array_merge($restricted_keys, CFT_core::get_other_vars());
-
-		$new_map = $query_vars = $errors = array();
-
-		$row_count = count((array) $_POST['key']);
-
-		for ( $i = 0; $i < $row_count; $i++) {
-			foreach ( $this->columns as $column ) {
-				$$column = trim($_POST[$column][$i]);
-			}
-
-			if ( empty($key) ) {
-				$errors[] = 'Empty CF key';
-				continue;
-			}
-
-			if ( empty($query_var) )
-				$query_var = $key;
-
-			$query_var = sanitize_title_with_dashes($query_var);
-
-			if ( empty($query_var) ) {
-				$errors[] = sprintf('Empty URL key for "%1$s"', $key);
-				continue;
-			}
-
-			if ( in_array($query_var, $restricted_keys) ) {
-				$errors[] = sprintf('Restricted URL key: "%1$s"', $query_var);
-				continue;
-			}
-
-			if ( in_array($query_var, $query_vars) ) {
-				$errors[] = sprintf('Duplicate URL key: "%1$s" for CF key "%2$s"', $query_var, $key);
-				continue;
-			}
-
-			$query_vars[] = $query_var;
-
-			if ( empty($title) )
-				$title = ucfirst($key);
-
-			$new_map[$key] = compact('query_var', 'title');
-		}
-
-		$this->options->map = $new_map;
-
-		$msg = 'Meta taxonomies <strong>saved</strong>.';
-
-		if ( !empty($errors) ) {
-			$msg .= '</p><p>' . 'Errors:';
-			$list = '';
-			foreach ( $errors as $error )
-				$list .= html('li', $error);
-
-			$msg .= html('ul', $list);
-		}
-
-		$this->admin_msg($msg);
-	}
-
-	function taxonomies_box() {
-		$thead = 
-		html('thead',
-			html('tr',
-				html('th scope="col"', 'CF Key')
-				.html('th scope="col"', 'URL Key')
-				.html('th scope="col"', 'Title')
-				.html('th scope="col"', '')
-			)
-		);
-
-		$map = $this->options->map;
-		
-		if ( empty($map) )
-			$map = array('' => array());
-
-		$tbody = '';
-		foreach ( $map as $key => $args ) {
-			extract($args);
-
-			$trow = '';
-			foreach ( $this->columns as $column )
-				$trow .= html('td', 
-					"\n\t\t" . $this->input(array(
-						'type' => 'text',
-						'names' => $column . '[]',
-						'values' => @$$column,
-						'desc' => false,
-				)), "\n\t");
-
-			$trow .= html('td class="delete"', 
-				"\n\t\t" . html_link('#', 'Delete')
-			, "\n\t");
-
-			$tbody .= html('tr', $trow, "\n");
-		}
-
-//*		
-		$tbody .= html('tr', 
-			html('td colspan="4"', 
-				html('a id="add" href="#"', 'Add row')
-			)
-		);
-/**/
-
-		$tbody = html('tbody', $tbody);
-
-		$table = html('table class="widefat"', $thead.$tbody);
-
-		echo $this->form_wrap($table, 'Save taxonomies', 'action', 'button no-ajax');
-	}
-
 
 	// AJAX response
 	function ajax_meta_search() {

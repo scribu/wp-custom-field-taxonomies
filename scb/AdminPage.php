@@ -5,6 +5,7 @@ Creates an admin page
 
 You must set $this->args and define the page_content() method
 */
+
 abstract class scbAdminPage {
 	/** Page args
 	 * string $parent  (default: options-general.php)
@@ -146,9 +147,17 @@ abstract class scbAdminPage {
 
 	/*
 	Mimics scbForms::form_wrap()
+
 	$this->form_wrap($content);	// generates a form with a default submit button
+
 	$this->form_wrap($content, false); // generates a form with no submit button
-	$this->form_wrap($content, $text = 'Save changes', $name = 'action', $class = 'button');	// the last 3 arguments are sent to submit_button()
+
+	// the second argument is sent to submit_button()
+	$this->form_wrap($content, array(
+		'text' => 'Save changes', 
+		'name' => 'action', 
+		'ajax' => true,
+	));
 	*/
 	function form_wrap($content, $submit_button = true) {
 		if ( is_array($submit_button) ) {
