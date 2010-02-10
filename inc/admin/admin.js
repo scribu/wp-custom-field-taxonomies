@@ -36,7 +36,11 @@ jQuery(document).ready(function($) {
 	(function() {
 		var $table = $('#taxonomies table');
 		var $row = $table.find('tbody tr:first').clone()
-			.find(':text').val('').end();
+			.find(':text').val('').end()
+			.find('[name^=numeric]')
+				.attr('name', 'numeric[' + ($table.find('tr').length-2)+ ']')
+				.removeAttr('checked')
+			.end();
 
 		$table.click(function(ev) {
 			var $el = $(ev.target);
@@ -47,17 +51,17 @@ jQuery(document).ready(function($) {
 					.insertBefore($el.parents('tr'));
 
 				bind_suggest($new_row.find('input:first'), 'key');
-			}
 
+				return false;
+			}
 			// Delete button
 			else if ( $el.is('a') ) {
 				$el.parents('tr').fadeOut('normal', function() {
 					$(this).remove();
 				});
-			}
 
-			return false;
+				return false;
+			}
 		});
 	})();
 });
-

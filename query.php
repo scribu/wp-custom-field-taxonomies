@@ -13,7 +13,7 @@ abstract class CFT_query {
 		self::$query_vars = $query_vars;
 		self::$other_query_vars = $other_query_vars;
 
-		// Set filters		
+		// Set filters
 		self::$filters = array(
 			'posts_fields' => '',
 			'posts_join' => '',
@@ -28,6 +28,7 @@ abstract class CFT_query {
 				$callback = $name;
 
 		// And add them
+		add_filter('request', array(__CLASS__, 'ignore_sticky'));
 		add_action('pre_get_posts', array(__CLASS__, 'add_filters'));
 	}
 
@@ -43,6 +44,13 @@ abstract class CFT_query {
 	static function remove_filters() {
 		foreach ( self::$filters as $name => $callback )
 			remove_filter($name, array(__CLASS__, $callback));
+	}
+
+
+	static function ignore_sticky($request) {
+		$request['caller_get_posts'] = 1;
+		
+		return $request;
 	}
 
 	static function posts_fields($fields) {

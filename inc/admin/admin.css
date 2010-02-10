@@ -1,15 +1,18 @@
-.inside table.widefat {
+#taxonomies table {
 	background-color: #F9F9F9;
 	border-color: #DFDFDF;
 }
 
-.inside table.widefat th {
+#taxonomies th {
 	background: #F1F1F1;
 	padding: 5px 0px 6px 13px;
 	line-height: 1;
 }
 
-.delete {padding-left: 0 !important}
+#taxonomies input[type="checkbox"] {
+	margin-left: 3px;
+}
+
 .delete a {
 	display: block;
 	width: 16px;

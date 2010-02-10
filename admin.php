@@ -64,9 +64,8 @@ class settingsCFT extends scbBoxesPage {
 		$row_count = count((array) $_POST['key']);
 
 		for ( $i = 0; $i < $row_count; $i++) {
-			foreach ( array_keys($this->columns) as $column ) {
-				$$column = trim($_POST[$column][$i]);
-			}
+			foreach ( array_keys($this->columns) as $column )
+				$$column = trim(@$_POST[$column][$i]);
 
 			if ( empty($key) ) {
 				$errors[] = 'Empty CF key';
@@ -97,8 +96,11 @@ class settingsCFT extends scbBoxesPage {
 
 			if ( empty($title) )
 				$title = ucfirst($key);
+			
+			if ( is_numeric($numeric) )
+				$numeric = true;
 
-			$new_map[$key] = compact('query_var', 'title');
+			$new_map[$key] = compact('query_var', 'title', 'numeric');
 		}
 
 		$this->options->map = $new_map;
@@ -138,38 +140,39 @@ class settingsCFT extends scbBoxesPage {
 			foreach ( array_keys($this->columns) as $column ) {
 				if ( 'numeric' == $column ) {
 					$trow .= html('td', 
-						"\n\t\t" . $this->input(array(
+						$this->input(array(
 							'type' => 'checkbox',
-							'name' => $column . '_' . $i,
-							'value' => $i,
-							'desc' => false,
-					)), "\n\t");
+							'name' => "numeric[$i]",
+							'checked' => $numeric
+						)
+					));
 				}
-				else {				
+				else {
 					$trow .= html('td', 
-						"\n\t\t" . $this->input(array(
+						$this->input(array(
 							'type' => 'text',
-							'names' => $column . "[$i]",
+							'names' => $column . '[]',
 							'values' => @$$column,
 							'desc' => false,
-					)), "\n\t");
+						)
+					));
 				}
 			}
 
-			$trow .= html('td class="delete"', 
-				"\n\t\t" . html_link('#', 'Delete')
-			, "\n\t");
+			$trow .= html('td class="delete"', html('a title="Delete" href="#"', 'Delete'));
 
-			$tbody .= html('tr', $trow, "\n");
+			$tbody .= html('tr', $trow);
 			$i++;
 		}
 
+		// Add row button
 		$colspan = count($this->columns) + 1;
-		$tbody .= html('tr', 
+		$tbody .= html('tr',
 			html("td colspan='$colspan'",
 				html('a id="add" href="#"', 'Add row')
 			)
 		);
+
 		$tbody = html('tbody', $tbody);
 
 		$table = html('table class="widefat"', $thead.$tbody);
