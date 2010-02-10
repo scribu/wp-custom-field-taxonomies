@@ -307,7 +307,7 @@ function _cft_init() {
 
 	if ( is_admin() ) {
 		require_once dirname(__FILE__) . '/admin/admin.php';
-		new settingsCFT(__FILE__, $options);
+		new CFT_Admin(__FILE__, $options);
 	}
 }
 

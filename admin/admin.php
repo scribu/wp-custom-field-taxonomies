@@ -1,7 +1,7 @@
 <?php
 
 // Adds the CFT Settings page
-class settingsCFT extends scbBoxesPage {
+class CFT_Admin extends scbBoxesPage {
 	private $sr_row;
 
 	function setup() {
