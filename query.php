@@ -83,7 +83,9 @@ abstract class CFT_query {
 		// Parse query_vars
 		$case = $and = $or = array();
 
-		foreach ( self::$query_vars as $key => $value ) {
+		foreach ( self::$query_vars as $query_var => $value ) {
+			extract(CFT_core::get_info($query_var));
+
 			$clause = "WHEN '$key' THEN meta_value ";
 
 			if ( empty($value) ) {

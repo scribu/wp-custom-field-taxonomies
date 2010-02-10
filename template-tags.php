@@ -45,7 +45,7 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 		return false;
 
 	foreach ( $values as $i => $value )
-		$values[$i] = sprintf('<a href="%s">%s</a>', CFT_core::get_meta_url($key, $value, $relative), $value);
+		$values[$i] = html_link(CFT_core::get_meta_url($key, $value, $relative), $value);
 
 	if ( count($values) > 1 )
 		$content = implode($glue, $values);
@@ -108,7 +108,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
 function meta_filter_box($exclude = array()) {
 	add_action('wp_footer', array('CFT_Filter_Box', 'scripts'));
 
-	$map = CFT_core::get_map();
+	$map = CFT_core::get_map('key');
 
 	foreach ( $exclude as $key )
 		unset($map[$key]);
@@ -160,8 +160,8 @@ function meta_relevance($before = 'Relevance: ', $after = '', $echo = true) {
  * Get all defined taxonomies as an associative array:
  * $query_var => $title
  */
-function get_meta_taxonomies() {
-	return CFT_core::get_map();
+function get_meta_taxonomies($key_type = 'key') {
+	return CFT_core::get_map($key_type);
 }
 
 

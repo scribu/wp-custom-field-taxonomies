@@ -85,6 +85,7 @@ Make sure your new host is running PHP 5. Add this line to wp-config.php:
 * added meta_orderby & meta_order parameters
 * added URL key field
 * added key-like queries
+* ignore sticky posts
 * fixed bug in settings page
 * [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-5.html)
 

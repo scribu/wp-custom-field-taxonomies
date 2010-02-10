@@ -82,16 +82,31 @@ if ( !empty($old_map) )
 */
 	}
 
-	static function get_map($raw = false) {
+	static function get_map($key_type) {
 		$r = array();
-		foreach ( self::$options->map as $args )
-			$r[$args['query_var']] = $args['title'];
+		if ( $key_type == 'key' )
+			foreach ( self::$options->map as $key => $args )
+				$r[$key] = $args['title'];
+		else
+			foreach ( self::$options->map as $args )
+				$r[$args['query_var']] = $args['title'];
 
 		return $r;
 	}
 
 	static function get_raw_map() {
 		return self::$options->map;
+	}
+
+	// Get information about a particular query var
+	static function get_info($query_var) {
+		foreach ( self::$options->map as $key => $args )
+			if ( $args['query_var'] == $query_var ) {
+				$args['key'] = $key;
+				return $args;
+			}
+
+		return false;
 	}
 
 	static function get_var($key = '') {
@@ -109,20 +124,20 @@ if ( !empty($old_map) )
 		if ( is_admin() || empty(self::$options->map) )
 			return false;
 
-		$keys = array_keys(self::get_map());
+		$qv = array_keys(self::get_map('query_var'));
 
-		self::$query_vars = scbUtil::array_extract($_GET, $keys);
+		self::$query_vars = scbUtil::array_extract($_GET, $qv);
 
 		$types = array('min', 'max', 'like');
 
-		foreach ( $keys as $key ) {
+		foreach ( $qv as $query_var ) {
 			$vars = array();
 			foreach ( $types as $type )
-				if ( isset($_GET["$key-$type"]) )
-					$vars[$type] = $_GET["$key-$type"];
+				if ( isset($_GET["$query_var-$type"]) )
+					$vars[$type] = $_GET["$query_var-$type"];
 
 			if ( !empty($vars) )
-				self::$query_vars[$key] = $vars;
+				self::$query_vars[$query_var] = $vars;
 		}
 
 		self::$query_vars = apply_filters('cft_query_vars', self::$query_vars, self::$options->map);
@@ -153,7 +168,7 @@ if ( !empty($old_map) )
 	}
 
 	static function get_meta_title($format = '%name%: %value%', $between = '; ') {
-		$map = CFT_core::get_map();
+		$map = CFT_core::get_map('query_var');
 	
 		foreach ( CFT_core::$query_vars as $key => $value ) {
 			$name = $map[$key];
@@ -239,12 +254,14 @@ if ( !empty($old_map) )
 		if ( is_singular() )
 			$relative = false;
 
+		$query_var = self::$options->map[$key]['query_var'];
+
 		if ( $relative )
 			$url = self::get_current_url();
 		else
 			$url = trailingslashit(get_bloginfo('url'));
 
-		$url = add_query_arg($key, urlencode($value), $url);
+		$url = add_query_arg($query_var, urlencode($value), $url);
 
 		return apply_filters('cft_get_url', $url, $key, $value, $relative);
 	}
