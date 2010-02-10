@@ -179,13 +179,6 @@ class CFT_Core {
 
 // Helper methods
 
-	static function is_defined($key) {
-		if ( ! $r = in_array($key, array_keys(self::$options->map)) )
-			trigger_error("Undefined meta taxonomy: $key", E_USER_WARNING);
-
-		return $r;
-	}
-
 	static function get_meta_values($key, $args = '') {
 		extract(wp_parse_args($args, array(
 			'auth_id' => 0,
