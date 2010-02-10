@@ -47,6 +47,7 @@ class settingsCFT extends scbBoxesPage {
 			html('li', 'CF Key - the custom field key (mandatory)')
 			.html('li', 'URL Key - the key in the URL: ?key=value')
 			.html('li', 'Title - a nice title for the field')
+			.html('li', 'Numeric - wether to treat the values as numbers or not')
 		);
 	}
 

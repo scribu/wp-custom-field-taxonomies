@@ -173,27 +173,30 @@ abstract class CFT_query {
 	}
 
 	static function posts_orderby($orderby) {
-		if ( CFT_core::$options->relevance )
-			return "meta_rank DESC, " . $orderby;
-
 		global $wpdb;
 
-		if ( $field = @self::$other_query_vars['meta_orderby'] ) {
-			if ( ! in_array($field, array_keys(CFT_core::get_map())) )
-				return $orderby;
+		if ( $info = CFT_core::get_info(@self::$other_query_vars['meta_orderby']) ) {
+			extract($info);
 
 			$order = strtoupper(trim(@self::$other_query_vars['meta_order']));
 			if ( ! in_array($order, array('ASC', 'DESC')) )
 				$order = 'ASC';
 
+			$key = esc_sql($key);
+
+			$field = $numeric ? 'CAST(meta_value AS decimal)' : 'meta_value';
+
 			$orderby = "(
-				SELECT meta_value
+				SELECT $field
 				FROM $wpdb->postmeta tmp
 				WHERE tmp.post_id = $wpdb->posts.ID
-				AND tmp.meta_key = '$field'
+				AND tmp.meta_key = '$key'
 				LIMIT 1
 			) $order";
 		}
+
+		if ( CFT_core::$options->relevance )
+			$orderby .= "meta_rank DESC, " . $orderby;
 
 		return $orderby;
 	}
