@@ -402,18 +402,5 @@ class settingsCFT extends scbBoxesPage {
 		echo implode("\n", $values);
 		die;
 	}
-
-/*
-	function cf_template_import() {
-		global $custom_field_template;
-		
-		if ( !isset($custom_field_template) )
-			return;
-
-		$options = $custom_field_template->get_custom_field_template_data();
-		foreach( array_keys($options['custom_fields']) as $id )
-			print_r($custom_field_template->get_custom_fields($id));
-	}
-*/
 }
 

@@ -103,32 +103,10 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
 /**
  * Display an advanced search box.
  * Make sure that your theme has wp_footer() called somewhere in footer.php
- * $exclude: an array of meta keys to be excluded
+ * $exclude: an array of URL keys to be excluded
  */
 function meta_filter_box($exclude = array()) {
-	add_action('wp_footer', array('CFT_Filter_Box', 'scripts'));
-
-	$map = CFT_Core::get_map('key');
-
-	foreach ( $exclude as $key )
-		unset($map[$key]);
-
-	$select = scbForms::input(array(
-		'type' => 'select',
-		'name' => 'cft_filter',
-		'value' => $map
-	));
-?>
-<form class="meta-filter-box" method='GET' action="<?php bloginfo('url'); ?>">
-<fieldset>
-<table class="meta-filters"></table>
-<div class="select-meta-filters">
-	Add filter <?php echo $select; ?>
-</div>
-<input name="action" type="submit" value="Go" />
-</fieldset>
-</form>
-<?php
+	CFT_Filter_Box::display($exclude);
 }
 
 

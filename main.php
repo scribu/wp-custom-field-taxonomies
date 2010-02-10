@@ -68,18 +68,6 @@ class CFT_Core {
 		}
 
 		self::$options->map = $map;
-		
-// DOWNGRADE
-/*
-foreach ( self::$options->map as $key => $value ) {
-	if ( ! is_array($value) )
-		break;
-		
-	$old_map[$key] = $value['title'];
-}
-if ( !empty($old_map) )
-	self::$options->map = $old_map;
-*/
 	}
 
 	static function get_map($key_type) {
@@ -204,6 +192,9 @@ if ( !empty($old_map) )
 			'hint' => '',
 			'orderby' => 'name',
 			'order' => 'ASC',
+			'include' => '',
+			'exclude' => '',
+			'limit' => '',
 		)), EXTR_SKIP);
 
 		global $wpdb;
@@ -297,59 +288,6 @@ if ( !empty($old_map) )
 	}
 }
 
-// Sets up scripts and AJAX suggest
-class CFT_Filter_Box {
-	const ajax_key = 'ajax-meta-search';
-
-	static function init() {
-		add_action('wp_ajax_' . self::ajax_key, array(__CLASS__, 'ajax_meta_search'));
-		add_action('wp_ajax_nopriv_' . self::ajax_key, array(__CLASS__, 'ajax_meta_search'));
-	}
-
-	static function scripts() {
-		$url = plugins_url('inc/', __FILE__);
-
-		wp_enqueue_script('cft-filter-box', $url . 'filter-box.js', array('jquery', 'suggest'), CFT_Core::VERSION);
-		wp_print_scripts(array('cft-filter-box'));
-
-		$ajax_url = admin_url('admin-ajax.php?action=' . self::ajax_key . '&key=');
-
-		$scripts[] = "<style type='text/css'>@import url('$url/filter-box.css');</style>";
-		$scripts[] = "<script type='text/javascript'>window.cft_suggest_url = '" . $ajax_url . "';</script>";
-
-		echo implode("\n", $scripts);
-	}
-
-	static function ajax_meta_search() {
-		$key = trim($_GET['key']);
-		$hint = trim($_GET['q']);
-
-		if ( ! CFT_Core::is_defined($key) )
-			die(-1);
-
-		foreach ( CFT_Core::get_meta_values($key, array('number' => 10, 'hint' => $hint)) as $value )
-			echo $value->name . "\n";
-
-		die;
-	}
-}
-
-/*
-class CFT_rewrite extends scbRewrite {
-	function generate() {
-		global $wp_rewrite, $wp;
-
-		$tags = array_keys(CFT_Core::get_map());
-
-		foreach ( $tags as $tag ) {
-			$wp->add_query_var($tag);
-			$wp_rewrite->add_rewrite_tag("%$tag%", '([^/]+)', "$tag=");
-			$wp_rewrite->add_permastruct($tag, "/%$tag%");
-		}
-	}
-}
-*/
-
 function _cft_init() {
 	// Load scbFramework
 	require_once dirname(__FILE__) . '/scb/load.php';
@@ -363,9 +301,9 @@ function _cft_init() {
 	));
 
 	CFT_Core::init($options);
-	CFT_Filter_Box::init();
 
 	require_once dirname(__FILE__) . '/template-tags.php';
+	require_once dirname(__FILE__) . '/filter-box/filter-box.php';
 
 	if ( is_admin() ) {
 		require_once dirname(__FILE__) . '/admin/admin.php';
