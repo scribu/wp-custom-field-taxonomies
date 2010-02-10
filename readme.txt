@@ -86,8 +86,7 @@ Make sure your new host is running PHP 5. Add this line to wp-config.php:
 * added 'URL key' and 'numeric' attributes for meta taxonomies
 * added key-like=value queries
 * ignore sticky posts
-* added contextual help
-* fixed bug in settings page
+* added contextual help to admin page
 * [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-1-5.html)
 
 = 1.4 =
