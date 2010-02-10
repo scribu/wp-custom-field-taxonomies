@@ -36,8 +36,8 @@ class settingsCFT extends scbBoxesPage {
 	}
 
 	function page_head() {
-		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_Core::VERSION);
-		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_Core::VERSION);
+		wp_enqueue_style('cft_css', $this->plugin_url . 'admin/admin.css', array(), CFT_Core::VERSION);
+		wp_enqueue_script('cft_js', $this->plugin_url . 'admin/admin.js', array('jquery', 'suggest'), CFT_Core::VERSION);
 	}
 
 	function page_help() {

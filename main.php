@@ -357,7 +357,7 @@ function _cft_init() {
 	require_once dirname(__FILE__) . '/template-tags.php';
 
 	if ( is_admin() ) {
-		require_once dirname(__FILE__) . '/admin.php';
+		require_once dirname(__FILE__) . '/admin/admin.php';
 		new settingsCFT(__FILE__, $options);
 	}
 }
