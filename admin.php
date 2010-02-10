@@ -36,8 +36,8 @@ class settingsCFT extends scbBoxesPage {
 	}
 
 	function page_head() {
-		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_core::VERSION);
-		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_core::VERSION);
+		wp_enqueue_style('cft_css', $this->plugin_url . 'inc/admin/admin.css', array(), CFT_Core::VERSION);
+		wp_enqueue_script('cft_js', $this->plugin_url . 'inc/admin/admin.js', array('jquery', 'suggest'), CFT_Core::VERSION);
 	}
 
 	function page_help() {
@@ -58,7 +58,7 @@ class settingsCFT extends scbBoxesPage {
 			return;
 
 		$restricted_keys = array_keys(WP_Query::fill_query_vars(array()));
-		$restricted_keys = array_merge($restricted_keys, CFT_core::get_other_vars());
+		$restricted_keys = array_merge($restricted_keys, CFT_Core::get_other_vars());
 
 		$new_map = $query_vars = $errors = array();
 

@@ -25,7 +25,7 @@ function the_meta_title($format = '%name%: %value%', $between = '; ') {
  * Same as the_meta_title(), except it returns the result, instead of echo-ing it
  */
 function get_meta_title($format = '%name%: %value%', $between = '; ') {
-	return CFT_core::get_meta_title($format, $between);
+	return CFT_Core::get_meta_title($format, $between);
 }
 
 
@@ -36,7 +36,7 @@ function get_meta_title($format = '%name%: %value%', $between = '; ') {
  * $glue: what to put between values (optional)
  */
 function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
-	if ( ! CFT_core::is_defined($key) )
+	if ( ! CFT_Core::is_defined($key) )
 		return false;
 
 	$values = get_post_meta($id, $key);
@@ -45,7 +45,7 @@ function get_linked_meta($id, $key, $glue = ', ', $relative = false) {
 		return false;
 
 	foreach ( $values as $i => $value )
-		$values[$i] = html_link(CFT_core::get_meta_url($key, $value, $relative), $value);
+		$values[$i] = html_link(CFT_Core::get_meta_url($key, $value, $relative), $value);
 
 	if ( count($values) > 1 )
 		$content = implode($glue, $values);
@@ -70,7 +70,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
 		'relative' => false,
 	)), EXTR_SKIP);
 
-	if ( ! CFT_core::is_defined($key) )
+	if ( ! CFT_Core::is_defined($key) )
 		return false;
 
 	$cloudArgs = wp_parse_args($cloudArgs, array(
@@ -82,14 +82,14 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
 	$tempArgs = scbUtil::array_extract($cloudArgs, array('number', 'exclude', 'include', 'orderby', 'order'));
 	$tempArgs['auth_id'] = $auth_id;
 
-	$tags = CFT_core::get_meta_values($key, $tempArgs);
+	$tags = CFT_Core::get_meta_values($key, $tempArgs);
 
 	if ( empty($tags) )
 		return false;
 
 	// Add links
 	foreach ( $tags as $i => $tag )
-		$tags[$i]->link = CFT_core::get_meta_url($key, $tag->name, $relative);
+		$tags[$i]->link = CFT_Core::get_meta_url($key, $tag->name, $relative);
 
 	$return = wp_generate_tag_cloud($tags, $cloudArgs);
 
@@ -108,7 +108,7 @@ function meta_cloud($metaArgs, $cloudArgs = '') {
 function meta_filter_box($exclude = array()) {
 	add_action('wp_footer', array('CFT_Filter_Box', 'scripts'));
 
-	$map = CFT_core::get_map('key');
+	$map = CFT_Core::get_map('key');
 
 	foreach ( $exclude as $key )
 		unset($map[$key]);
@@ -140,7 +140,7 @@ function meta_relevance($before = 'Relevance: ', $after = '', $echo = true) {
 	if ( ! is_meta() )
 		return false;
 
-	if ( ! CFT_core::$options->relevance )
+	if ( ! CFT_Core::$options->relevance )
 		$relevance = '100%';
 	else {
 		global $post;
@@ -161,7 +161,7 @@ function meta_relevance($before = 'Relevance: ', $after = '', $echo = true) {
  * $query_var => $title
  */
 function get_meta_taxonomies($key_type = 'key') {
-	return CFT_core::get_map($key_type);
+	return CFT_Core::get_map($key_type);
 }
 
 

@@ -56,7 +56,7 @@ abstract class CFT_query {
 	static function posts_fields($fields) {
 		global $wpdb;
 
-		if ( ! CFT_core::$options->relevance )
+		if ( ! CFT_Core::$options->relevance )
 			return $fields;
 
 		$nr = count(self::$query_vars);
@@ -74,7 +74,7 @@ abstract class CFT_query {
 		global $wpdb;
 
 		if ( is_singular() ) {
-//			CFT_core::make_canonical();
+//			CFT_Core::make_canonical();
 
 			// Get posts instead of front page
 			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
@@ -84,7 +84,7 @@ abstract class CFT_query {
 		$case = $and = $or = array();
 
 		foreach ( self::$query_vars as $query_var => $value ) {
-			extract(CFT_core::get_info($query_var));
+			extract(CFT_Core::get_info($query_var));
 
 			$clause = "WHEN '$key' THEN meta_value ";
 
@@ -107,10 +107,10 @@ abstract class CFT_query {
 				elseif ( isset($max) )
 					$case[$key] .= $wpdb->prepare("<= %s", $max);
 			}
-			elseif ( CFT_core::$options->allow_and && FALSE !== strpos($value, ' ') ) {
+			elseif ( CFT_Core::$options->allow_and && FALSE !== strpos($value, ' ') ) {
 				$and[$key] = explode(' ', $value);
 			}
-			elseif ( CFT_core::$options->allow_or && FALSE !== strpos($value, ',') ) {
+			elseif ( CFT_Core::$options->allow_or && FALSE !== strpos($value, ',') ) {
 				$value = array_to_sql(explode(',', $value));
 				$case[$key] = $clause . "IN ($value)";
 			}
@@ -154,7 +154,7 @@ abstract class CFT_query {
 		global $wpdb;
 
 		// Set having
-		if ( CFT_core::$options->relevance )
+		if ( CFT_Core::$options->relevance )
 			$having = ' HAVING COUNT(*) > 0';
 		else
 			$having = ' HAVING COUNT(*) = ' . count(self::$query_vars);
@@ -175,7 +175,7 @@ abstract class CFT_query {
 	static function posts_orderby($orderby) {
 		global $wpdb;
 
-		if ( $info = CFT_core::get_info(@self::$other_query_vars['meta_orderby']) ) {
+		if ( $info = CFT_Core::get_info(@self::$other_query_vars['meta_orderby']) ) {
 			extract($info);
 
 			$order = strtoupper(trim(@self::$other_query_vars['meta_order']));
@@ -195,7 +195,7 @@ abstract class CFT_query {
 			) $order";
 		}
 
-		if ( CFT_core::$options->relevance )
+		if ( CFT_Core::$options->relevance )
 			$orderby .= "meta_rank DESC, " . $orderby;
 
 		return $orderby;
@@ -207,7 +207,7 @@ abstract class CFT_query {
 		self::remove_filters();
 		self::set_query_flags();
 
-		if ( ! CFT_core::$options->rank_by_order )
+		if ( ! CFT_Core::$options->rank_by_order )
 			return $posts;
 
 		self::set_penalties();

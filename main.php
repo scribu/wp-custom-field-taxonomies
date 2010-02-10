@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 1.5a
+Version: 1.5b
 Description: Use custom fields to make ad-hoc taxonomies
 Author: scribu
 Author URI: http://scribu.net/
@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-class CFT_core {
+class CFT_Core {
 	const VERSION = '1.5';
 
 	static $options;
@@ -168,9 +168,9 @@ if ( !empty($old_map) )
 	}
 
 	static function get_meta_title($format = '%name%: %value%', $between = '; ') {
-		$map = CFT_core::get_map('query_var');
+		$map = CFT_Core::get_map('query_var');
 	
-		foreach ( CFT_core::$query_vars as $key => $value ) {
+		foreach ( CFT_Core::$query_vars as $key => $value ) {
 			$name = $map[$key];
 
 			if ( is_array($value) ) {
@@ -298,7 +298,7 @@ class CFT_Filter_Box {
 	static function scripts() {
 		$url = plugins_url('inc/', __FILE__);
 
-		wp_enqueue_script('cft-filter-box', $url . 'filter-box.js', array('jquery', 'suggest'), CFT_core::VERSION);
+		wp_enqueue_script('cft-filter-box', $url . 'filter-box.js', array('jquery', 'suggest'), CFT_Core::VERSION);
 		wp_print_scripts(array('cft-filter-box'));
 
 		$ajax_url = admin_url('admin-ajax.php?action=' . self::ajax_key . '&key=');
@@ -313,10 +313,10 @@ class CFT_Filter_Box {
 		$key = trim($_GET['key']);
 		$hint = trim($_GET['q']);
 
-		if ( ! CFT_core::is_defined($key) )
+		if ( ! CFT_Core::is_defined($key) )
 			die(-1);
 
-		foreach ( CFT_core::get_meta_values($key, array('number' => 10, 'hint' => $hint)) as $value )
+		foreach ( CFT_Core::get_meta_values($key, array('number' => 10, 'hint' => $hint)) as $value )
 			echo $value->name . "\n";
 
 		die;
@@ -328,7 +328,7 @@ class CFT_rewrite extends scbRewrite {
 	function generate() {
 		global $wp_rewrite, $wp;
 
-		$tags = array_keys(CFT_core::get_map());
+		$tags = array_keys(CFT_Core::get_map());
 
 		foreach ( $tags as $tag ) {
 			$wp->add_query_var($tag);
@@ -351,7 +351,7 @@ function _cft_init() {
 		'allow_or' => false,
 	));
 
-	CFT_core::init($options);
+	CFT_Core::init($options);
 	CFT_Filter_Box::init();
 
 	require_once dirname(__FILE__) . '/template-tags.php';
