@@ -73,12 +73,9 @@ abstract class CFT_query {
 	static function posts_where($where) {
 		global $wpdb;
 
-		if ( is_singular() ) {
-//			CFT_Core::make_canonical();
-
-			// Get posts instead of front page
+		if ( is_singular() )
+			// Ignore previous where clause
 			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
-		}
 
 		// Parse query_vars
 		$case = $and = $or = array();
