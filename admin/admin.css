@@ -15,11 +15,15 @@
 
 .delete a {
 	display: block;
+	margin-top: 1px;
 	width: 16px;
 	height: 16px;
-	margin-top: 1px;
 	text-indent: -999px;
 	background: url("cancel.png") no-repeat;
+	opacity: .5;
+}
+.delete a:hover {
+	opacity: 1;
 }
 
 #add {display:block; margin: 5px}

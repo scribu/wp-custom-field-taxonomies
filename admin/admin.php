@@ -121,16 +121,16 @@ class CFT_Admin extends scbBoxesPage {
 	}
 
 	function taxonomies_box() {
+		$map = $this->options->map;
+		
+		if ( empty($map) )
+			$map = array('' => array());
+
 		$thead = '';
 		foreach ( array_values($this->columns) + array('') as $name )
 			$thead .= html('th scope="col"', $name);
 		$thead .= html('th scope="col"');
 		$thead = html('thead', html('tr', $thead));
-
-		$map = $this->options->map;
-		
-		if ( empty($map) )
-			$map = array('' => array());
 
 		$tbody = '';
 		$i = 0;

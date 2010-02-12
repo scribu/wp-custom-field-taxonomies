@@ -86,6 +86,10 @@ class CFT_Core {
 		return self::$options->map;
 	}
 
+	static function is_defined($key) {
+		return isset(self::$options->map[$key]);
+	}
+
 	// Get information about a particular query var
 	static function get_info($query_var) {
 		foreach ( self::$options->map as $key => $args )
