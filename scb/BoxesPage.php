@@ -25,6 +25,13 @@ abstract class scbBoxesPage extends scbAdminPage {
 	*/
 	protected $boxes = array();
 
+	function __construct($file, $options = null) {
+		parent::__construct($file, $options);
+
+		// too late
+		scbUtil::add_uninstall_hook($this->file, array($this, 'uninstall'));
+	}
+
 	function page_init() {
 		if ( !isset($this->args['columns']) )
 			$this->args['columns'] = 2;
@@ -33,15 +40,12 @@ abstract class scbBoxesPage extends scbAdminPage {
 
 		add_action('load-' . $this->pagehook, array($this, 'boxes_init'));
 		add_filter('screen_layout_columns', array($this, 'columns'));
-
-		register_uninstall_hook($this->file, array($this, 'uninstall'));
 	}
 
 	function default_css() {
 ?>
 <style type="text/css">
-.meta-box-sortables {margin: 0 5px !important}
-.inside {clear:both; overflow:hidden; padding: 10px 10px 0 10px !important}
+.inside {clear: both; overflow: hidden; padding: 10px 10px 0 10px !important}
 .inside table {margin: 0 !important; padding: 0 !important}
 .inside table td {vertical-align: middle !important}
 .inside table .regular-text {width: 100% !important}
@@ -97,8 +101,8 @@ abstract class scbBoxesPage extends scbAdminPage {
 	}
 
 	function page_footer() {
-		$this->_boxes_js_init();
 		parent::page_footer();
+		$this->_boxes_js_init();
 	}
 
 	function form_handler() {
@@ -187,7 +191,7 @@ abstract class scbBoxesPage extends scbAdminPage {
 			$parts[1]++;
 		else
 			$parts[1] = 2;
-		
+
 		return implode('-', $parts);
 	}
 
@@ -195,14 +199,12 @@ abstract class scbBoxesPage extends scbAdminPage {
 	function _boxes_js_init() {
 		echo $this->js_wrap(
 <<<EOT
-//<![CDATA[
-jQuery(document).ready( function($){
+jQuery(document).ready(function($){
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	// postboxes setup
 	postboxes.add_postbox_toggles('$this->pagehook');
 });
-//]]>
 EOT
 );
 ?>
