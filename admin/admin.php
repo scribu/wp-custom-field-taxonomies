@@ -144,7 +144,7 @@ class CFT_Admin extends scbBoxesPage {
 						$this->input(array(
 							'type' => 'checkbox',
 							'name' => "numeric[$i]",
-							'checked' => $numeric
+							'checked' => @$$column
 						)
 					));
 				}
