@@ -339,7 +339,7 @@ class CFT_Admin extends scbBoxesPage {
 
 		$new_opts = array();
 		foreach( array('relevance', 'rank_by_order', 'allow_and', 'allow_or') as $key )
-			$new_opts[$key] = (bool) $_POST[$key];
+			$new_opts[$key] = (bool) @$_POST[$key];
 
 		if ( ! $new_opts['relevance'] )
 			$new_opts['rank_by_order'] = false;

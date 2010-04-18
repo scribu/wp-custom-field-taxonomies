@@ -78,12 +78,14 @@ abstract class CFT_query {
 			$where = " AND {$wpdb->posts}.post_type = 'post' AND {$wpdb->posts}.post_status = 'publish'";
 
 		// Parse query_vars
-		$case = $and = $or = array();
+		$and_sql = '';
+		$case = array();
 
 		foreach ( self::$query_vars as $query_var => $value ) {
 			extract(CFT_Core::get_info($query_var));
 
-			$clause = "WHEN '$key' THEN meta_value ";
+			$clause = "WHEN '$key' THEN ";
+			$meta_value = self::get_meta_value_sql($query_var);
 
 			if ( empty($value) ) {
 				$case[$key] = $clause . "IS NOT NULL";
@@ -98,25 +100,36 @@ abstract class CFT_query {
 					$case[$key] .= "LIKE('$like')";
 				}
 				elseif ( isset($min) && isset($max) )
-					$case[$key] .= $wpdb->prepare(">= %s AND meta_value <= %s", $min, $max);
+					$case[$key] .= $wpdb->prepare("$meta_value >= %s AND $meta_value <= %s", $min, $max);
 				elseif ( isset($min) )
-					$case[$key] .= $wpdb->prepare(">= %s", $min);
+					$case[$key] .= $wpdb->prepare("$meta_value >= %s", $min);
 				elseif ( isset($max) )
-					$case[$key] .= $wpdb->prepare("<= %s", $max);
+					$case[$key] .= $wpdb->prepare("$meta_value <= %s", $max);
 			}
 			elseif ( CFT_Core::$options->allow_and && FALSE !== strpos($value, ' ') ) {
-				$and[$key] = explode(' ', $value);
+				$value = explode(' ', $value);
+				$count = count($value);
+				$value = scbUtil::array_to_sql($value);
+
+				$and_sql .= " AND {$wpdb->posts}.ID IN (
+					SELECT post_id
+					FROM {$wpdb->postmeta}
+					WHERE meta_key = '$key'
+					AND $meta_value IN ($value)
+					GROUP BY post_id
+					HAVING COUNT(*) >= $count
+				)";
 			}
 			elseif ( CFT_Core::$options->allow_or && FALSE !== strpos($value, ',') ) {
-				$value = array_to_sql(explode(',', $value));
-				$case[$key] = $clause . "IN ($value)";
+				$value = scbUtil::array_to_sql(explode(',', $value));
+				$case[$key] = $clause . "$meta_value IN ($value)";
 			}
 			elseif ( FALSE !== strpos($value, '*') ) {
 				$value = str_replace('*', '%', like_escape(esc_sql($value)));
-				$case[$key] = $clause . "LIKE('$value')";
+				$case[$key] = $clause . "$meta_value LIKE('$value')";
 			}
 			else
-				$case[$key] = $clause . $wpdb->prepare("= %s", $value);
+				$case[$key] = $clause . $wpdb->prepare("$meta_value = %s", $value);
 		}
 
 		// CASE SQL
@@ -126,23 +139,6 @@ abstract class CFT_query {
 			$case = " AND CASE meta_key " . implode("\n", $case) . " END";
 		else
 			$case = '';
-
-		// AND SQL
-		$and_sql = '';
-		foreach ( $and as $key => $clause ) {
-			$count = count($clause);
-
-			$clause = array_to_sql($clause);
-
-			$and_sql .= " AND {$wpdb->posts}.ID IN (
-				SELECT post_id
-				FROM {$wpdb->postmeta}
-				WHERE meta_key = '$key'
-				AND meta_value IN ($clause)
-				GROUP BY post_id
-				HAVING COUNT(*) >= $count
-			)";
-		}
 
 		return $where . $case . $and_sql;
 	}
@@ -181,7 +177,7 @@ abstract class CFT_query {
 
 			$key = esc_sql($key);
 
-			$field = $numeric ? 'CAST(meta_value AS decimal)' : 'meta_value';
+			$field = self::get_meta_value_sql(self::$other_query_vars['meta_orderby']);
 
 			$orderby = "(
 				SELECT $field
@@ -196,6 +192,12 @@ abstract class CFT_query {
 			$orderby .= "meta_rank DESC, " . $orderby;
 
 		return $orderby;
+	}
+
+	private static function get_meta_value_sql($field) {
+		$info = CFT_Core::get_info($field);
+
+		return ( @$info['numeric'] ) ? 'CAST(meta_value AS decimal)' : 'meta_value';
 	}
 
 	// Sorts posts using penalties
