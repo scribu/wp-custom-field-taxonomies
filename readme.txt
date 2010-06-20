@@ -2,7 +2,7 @@
 Contributors: scribu
 Donate link: http://scribu.net/paypal
 Tags: custom fields, meta, metadata, taxonomy
-Requires at least: 2.8
+Requires at least: 3.0
 Tested up to: 3.0
 Stable tag: 1.4
 

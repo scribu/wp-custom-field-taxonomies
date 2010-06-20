@@ -5,6 +5,8 @@ class CFT_Admin {
 	function init() {
 		add_action('admin_notices', array(__CLASS__, 'convert'));
 		add_action('tool_box', array(__CLASS__, 'display'));
+
+		add_filter('plugin_action_links_' . CFT_PLUGIN_BASENAME, array(__CLASS__, '_action_link'));
 	}
 
 	function convert() {
@@ -62,7 +64,7 @@ class CFT_Admin {
 		));
 
 		echo
-		html('div class="tool-box"',
+		html('div id="cf-to-tax" class="tool-box"',
 			 html('h3 class="title"', __('Custom Field Taxonomies'))
 			.scbForms::form_wrap(html('p', 
 				 sprintf(__('Convert %s custom fields to terms in the %s taxonomy.'), $cf_input, $tax_input)
@@ -95,6 +97,12 @@ class CFT_Admin {
 			$taxonomies[$tax_name] = $tax_obj->label ? $tax_obj->label : $tax_name;
 
 		return $taxonomies;
+	}
+
+	function _action_link($links) {
+		$links[] = html_link(admin_url('tools.php#cf-to-tax'), __('Use'));
+
+		return $links;
 	}
 }
 

@@ -23,8 +23,10 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-if ( !is_admin() ) 
+if ( !is_admin() )
 	return;
+
+define('CFT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 // Load scbFramework
 require_once dirname(__FILE__) . '/scb/load.php';
