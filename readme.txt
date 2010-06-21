@@ -12,6 +12,8 @@ Convert custom fields to tags, categories or taxonomy terms
 
 With this simple plugin, you can convert all custom fields with a certain key to terms in a certain taxonomy (post tags, categories, etc.), while maintaining the post association.
 
+To register custom taxonomies, you can use a plugin like [Simple Taxonomies](http://wordpress.org/extend/plugins/simple-taxonomies/).
+
 == Installation ==
 
 1. Unzip the archive and put the folder into your plugins folder (/wp-content/plugins/).
@@ -27,11 +29,15 @@ Make sure your host is running PHP 5. The only foolproof way to do this is to ad
 `var_dump(PHP_VERSION);`
 <br>
 
+== Screenshots ==
+
+1. The utility
+
 == Changelog ==
 
 = 2.0 =
 * new direction: convert custom fields to taxonomy terms
-* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-2-0.html)
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/change-of-direction.html)
 
 = 1.4 =
 * added support for ranges: ?price-min=100&price-max=300
