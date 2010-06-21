@@ -4,7 +4,7 @@ Donate link: http://scribu.net/paypal
 Tags: custom fields, meta, metadata, taxonomy
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 1.4
+Stable tag: trunk
 
 Convert custom fields to tags, categories or taxonomy terms
 
