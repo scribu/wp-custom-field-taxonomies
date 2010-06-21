@@ -1,0 +1,76 @@
+# Translation of the WordPress plugin Custom Field Taxonomies 2.0-alpha by scribu.
+# Copyright (C) 2010 scribu
+# This file is distributed under the same license as the Custom Field Taxonomies package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Custom Field Taxonomies 2.0-alpha\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/custom-field-taxonomies\n"
+"POT-Creation-Date: 2010-06-21 16:44+0300\n"
+"PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: admin.php:45
+#, php-format
+msgid "Converted <em>%d</em> custom field."
+msgid_plural "Converted <em>%d</em> custom fields."
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin.php:66
+msgid "Go"
+msgstr ""
+
+#: admin.php:67
+msgid "Are you sure? This operation can not be undone."
+msgstr ""
+
+#. #-#-#-#-#  custom-field-taxonomies.pot (Custom Field Taxonomies 2.0-alpha)  #-#-#-#-#
+#. Plugin Name of the plugin/theme
+#: admin.php:73
+msgid "Custom Field Taxonomies"
+msgstr ""
+
+#: admin.php:75
+#, php-format
+msgid "Convert %s custom fields to terms in the %s taxonomy."
+msgstr ""
+
+#: admin.php:108
+msgid "Use"
+msgstr ""
+
+#: scb/AdminPage.php:167
+msgid "Settings <strong>saved</strong>."
+msgstr ""
+
+#: scb/AdminPage.php:180 scb/AdminPage.php:191
+msgid "Save Changes"
+msgstr ""
+
+#: scb/AdminPage.php:377
+msgid "Settings"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://scribu.net/wordpress/custom-field-taxonomies"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Convert custom fields to tags, categories or taxonomy terms"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "scribu"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://scribu.net/"
+msgstr ""

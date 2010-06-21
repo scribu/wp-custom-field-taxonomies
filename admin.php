@@ -42,7 +42,7 @@ class CFT_Admin {
 		echo 
 		html('div class="updated"', 
 			html('p', 
-				sprintf(_n('Converted <em>%d</em> custom field.', 'Converted <em>%d</em> custom fields.', $r), number_format_i18n($r))
+				sprintf(_n('Converted <em>%d</em> custom field.', 'Converted <em>%d</em> custom fields.', $r, 'custom-field-taxonomies'), number_format_i18n($r))
 			)
 		);
 	}
@@ -63,16 +63,16 @@ class CFT_Admin {
 		$go_input = scbForms::input(array(
 			'type' => 'submit',
 			'name' => 'cf_to_term',
-			'value' => __('Go'),
-#			'extra' => 'class="button" onclick="return confirm(\'Are you sure? This operation can not be undone.\')"'
-			'extra' => 'class="button"'
+			'value' => __('Go', 'custom-field-taxonomies'),
+			'extra' => sprintf('class="button" onclick="return confirm(\'%s\')"', __('Are you sure? This operation can not be undone.', 'custom-field-taxonomies'))
+#			'extra' => 'class="button"'
 		));
 
 		echo
 		html('div id="cf-to-tax" class="tool-box"',
-			 html('h3 class="title"', __('Custom Field Taxonomies'))
+			 html('h3 class="title"', __('Custom Field Taxonomies', 'custom-field-taxonomies', 'custom-field-taxonomies'))
 			.scbForms::form_wrap(html('p', 
-				 sprintf(__('Convert %s custom fields to terms in the %s taxonomy.'), $cf_input, $tax_input)
+				 sprintf(__('Convert %s custom fields to terms in the %s taxonomy.', 'custom-field-taxonomies'), $cf_input, $tax_input)
 				. ' ' . $go_input
 			), false)
 		);
@@ -105,7 +105,7 @@ class CFT_Admin {
 	}
 
 	function _action_link($links) {
-		$links[] = html_link(admin_url('tools.php#cf-to-tax'), __('Use'));
+		$links[] = html_link(admin_url('tools.php#cf-to-tax'), __('Use', 'custom-field-taxonomies'));
 
 		return $links;
 	}
