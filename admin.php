@@ -39,7 +39,12 @@ class CFT_Admin {
 
 		$r = $wpdb->query($wpdb->prepare("DELETE FROM $wpdb->postmeta WHERE meta_key = %s", $cf_key));
 
-		echo html('div class="updated"', html('p', sprintf('Converted <em>%d</em> custom fields.', number_format_i18n($r))));
+		echo 
+		html('div class="updated"', 
+			html('p', 
+				sprintf(_n('Converted <em>%d</em> custom field.', 'Converted <em>%d</em> custom fields.', $r), number_format_i18n($r))
+			)
+		);
 	}
 
 	function display() {

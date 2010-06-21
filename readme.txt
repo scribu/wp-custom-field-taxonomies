@@ -10,7 +10,7 @@ Convert custom fields to tags, categories or taxonomy terms
 
 == Description ==
 
-With this simple plugin, you can convert custom fields to terms in any taxonomy (tags, categories, etc.) with one click.
+With this simple plugin, you can convert all custom fields with a certain key to terms in a certain taxonomy (post tags, categories, etc.), while maintaining the post association.
 
 == Installation ==
 
