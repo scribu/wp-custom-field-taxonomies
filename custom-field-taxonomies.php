@@ -9,12 +9,12 @@ Plugin URI: http://scribu.net/wordpress/custom-field-taxonomies
 Text Domain: custom-field-taxonomies
 Domain Path: /lang
 
-Copyright (C) 2010 scribu.net (scribu AT gmail DOT com)
+Copyright ( C ) 2010 scribu.net ( scribu AT gmail DOT com )
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
-(at your option) any later version.
+( at your option ) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,16 +28,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 if ( !is_admin() )
 	return;
 
-define('CFT_PLUGIN_BASENAME', plugin_basename(__FILE__));
+define( 'CFT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 // Load scbFramework
-require_once dirname(__FILE__) . '/scb/load.php';
+require_once dirname( __FILE__ ) . '/scb/load.php';
 
 function _cft_init() {
-	load_plugin_textdomain('custom-field-taxonomies', '', dirname(plugin_basename(__FILE__)) . '/lang');
+	load_plugin_textdomain( 'custom-field-taxonomies', '', dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 
-	require_once dirname(__FILE__) . '/admin.php';
+	require_once dirname( __FILE__ ) . '/admin.php';
 	CFT_Admin::init();
 }
-scb_init('_cft_init');
+scb_init( '_cft_init' );
 
