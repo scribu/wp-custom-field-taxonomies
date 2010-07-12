@@ -29,16 +29,15 @@ class CFT_Admin {
 		}
 
 		$rows = $wpdb->get_results( $wpdb->prepare( "
-			SELECT post_id, meta_value
+			SELECT post_id, GROUP_CONCAT(meta_value) as terms
 			FROM $wpdb->postmeta
 			WHERE meta_key = %s
+			GROUP BY post_id
 		", $cf_key ) );
 
-		$to_update = array();
-		foreach ( $rows as $row )
-			$to_update[ $row->post_id ][] = $row->meta_value;
-
-		foreach ( $to_update as $post_id => $terms ) {
+		foreach ( $rows as $row ) {
+			$post_id = $row->post_id;
+			$terms = explode( ',', $row->terms );
 			$terms = (array) apply_filters( 'cft_terms_pre', $terms, $post_id );
 
 			// Convert raw values to term ids
