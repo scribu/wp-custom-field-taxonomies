@@ -38,8 +38,24 @@ class CFT_Admin {
 		foreach ( $rows as $row )
 			$to_update[ $row->post_id ][] = $row->meta_value;
 
-		foreach ( $to_update as $post_id => $terms )
-			wp_set_post_terms( $row->post_id, apply_filters( 'cft_terms_pre', $terms, $post_id ), $taxonomy, true );
+		foreach ( $to_update as $post_id => $terms ) {
+			$terms = (array) apply_filters( 'cft_terms_pre', $terms, $post_id );
+
+			// Convert raw values to term ids
+			foreach ( $terms as $i => $term_name ) {
+				if ( !$term = term_exists( $term_name, $taxonomy ) )
+					$term = wp_insert_term( $term_name, $taxonomy );
+
+				if ( is_wp_error( $term ) ) {
+					echo html( 'div class="error"', html( 'p', $term->get_error_message() ) );
+					return;
+				}
+
+				$terms[ $i ] = (int) $term['term_id'];
+			}
+
+			wp_set_object_terms( $row->post_id, $terms, $taxonomy, true );
+		}
 
 		$r = $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", $cf_key ) );
 
