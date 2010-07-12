@@ -38,8 +38,8 @@ class CFT_Admin {
 		foreach ( $rows as $row )
 			$to_update[ $row->post_id ][] = $row->meta_value;
 
-		foreach ( $to_update as $post_id, $terms )
-			wp_set_object_terms( $row->post_id, apply_filters( 'cft_terms', $terms, $post_id ), $taxonomy, true );
+		foreach ( $to_update as $post_id => $terms )
+			wp_set_post_terms( $row->post_id, apply_filters( 'cft_terms_pre', $terms, $post_id ), $taxonomy, true );
 
 		$r = $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", $cf_key ) );
 
