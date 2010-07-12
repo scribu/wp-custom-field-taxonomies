@@ -34,15 +34,24 @@ class CFT_Admin {
 			WHERE meta_key = %s
 		", $cf_key ) );
 
+		$to_update = array();
 		foreach ( $rows as $row )
-			wp_set_object_terms( $row->post_id, $row->meta_value, $taxonomy, true );
+			$to_update[ $row->post_id ][] = $row->meta_value;
+
+		foreach ( $to_update as $post_id, $terms )
+			wp_set_object_terms( $row->post_id, apply_filters( 'cft_terms', $terms, $post_id ), $taxonomy, true );
 
 		$r = $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", $cf_key ) );
 
 		echo
 		html( 'div class="updated"',
 			html( 'p',
-				sprintf( _n( 'Converted <em>%d</em> custom field.', 'Converted <em>%d</em> custom fields.', $r, 'custom-field-taxonomies' ), number_format_i18n( $r ) )
+				sprintf( _n( 
+					'Converted <em>%d</em> custom field.', 
+					'Converted <em>%d</em> custom fields.', 
+					$r, 
+					'custom-field-taxonomies' 
+				), number_format_i18n( $r ) )
 			)
 		);
 	}
@@ -65,7 +74,6 @@ class CFT_Admin {
 			'name' => 'cf_to_term',
 			'value' => __( 'Go', 'custom-field-taxonomies' ),
 			'extra' => sprintf( 'class="button" onclick="return confirm( \'%s\' )"', __( 'Are you sure? This operation can not be undone.', 'custom-field-taxonomies' ) )
-#			'extra' => 'class="button"'
 		) );
 
 		echo
