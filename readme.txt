@@ -4,7 +4,7 @@ Donate link: http://scribu.net/paypal
 Tags: custom fields, meta, metadata, taxonomy
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 2.0
+Stable tag: trunk
 
 Convert custom fields to tags, categories or taxonomy terms
 
@@ -36,6 +36,11 @@ Make sure your host is running PHP 5. The only foolproof way to do this is to ad
 1. The utility
 
 == Changelog ==
+
+= 2.0.1 =
+* fixed error with existing terms
+* proper handling of custom fields with ',' in them
+* [more info](http://scribu.net/wordpress/custom-field-taxonomies/cft-2-0.html)
 
 = 2.0 =
 * new direction: convert custom fields to taxonomy terms
