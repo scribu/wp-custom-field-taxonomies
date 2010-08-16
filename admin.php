@@ -2,16 +2,16 @@
 
 class CFT_Admin {
 
+	protected static $errors = array();
+
 	function init() {
-		add_action( 'admin_notices', array( __CLASS__, 'convert' ) );
+		add_action( 'admin_notices', array( __CLASS__, 'handler' ) );
 		add_action( 'tool_box', array( __CLASS__, 'display' ) );
 
 		add_filter( 'plugin_action_links_' . CFT_PLUGIN_BASENAME, array( __CLASS__, '_action_link' ) );
 	}
 
-	function convert() {
-		global $wpdb;
-
+	function handler() {
 		if ( !isset( $_POST['cf_to_term'] ) )
 			return;
 
@@ -28,8 +28,33 @@ class CFT_Admin {
 			return;
 		}
 
+		$r = self::convert( $cf_key, $taxonomy );
+
+		echo '<div class="updated">';
+
+		echo
+		html( 'p',
+			sprintf( _n(
+				'Converted <em>%d</em> custom field.',
+				'Converted <em>%d</em> custom fields.',
+				$r,
+				'custom-field-taxonomies'
+			), number_format_i18n( $r ) )
+		);
+
+		if ( !empty( self::$errors ) ) {
+			echo html( 'p', __( 'There were some errors:', 'custom-field-taxonomies' ) );
+			foreach ( self::$errors as $cf_value => $message )
+				echo html( 'p', $cf_value . ': ' . $message );
+		}
+		echo '</div>';
+	}
+
+	function convert( $cf_key, $taxonomy ) {
+		global $wpdb;
+
 		$rows = $wpdb->get_results( $wpdb->prepare( "
-			SELECT post_id, GROUP_CONCAT(meta_value) as terms
+			SELECT post_id, GROUP_CONCAT( meta_value ) as terms
 			FROM $wpdb->postmeta
 			WHERE meta_key = %s
 			GROUP BY post_id
@@ -42,12 +67,20 @@ class CFT_Admin {
 
 			// Convert raw values to term ids
 			foreach ( $terms as $i => $term_name ) {
-				if ( !$term = term_exists( $term_name, $taxonomy ) )
+				$term_name = trim( $term_name );
+
+				if ( empty( $term_name ) )
+					continue;
+
+				$term = get_term_by( 'name', $term_name, $taxonomy, ARRAY_A );
+
+				if ( !$term ) {
 					$term = wp_insert_term( $term_name, $taxonomy );
 
-				if ( is_wp_error( $term ) ) {
-					echo html( 'div class="error"', html( 'p', $term->get_error_message() ) );
-					return;
+					if ( is_wp_error( $term ) ) {
+						self::$errors[$term_name] = $term->get_error_message();
+						continue;
+					}
 				}
 
 				$terms[ $i ] = (int) $term['term_id'];
@@ -56,19 +89,7 @@ class CFT_Admin {
 			wp_set_object_terms( $row->post_id, $terms, $taxonomy, true );
 		}
 
-		$r = $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", $cf_key ) );
-
-		echo
-		html( 'div class="updated"',
-			html( 'p',
-				sprintf( _n( 
-					'Converted <em>%d</em> custom field.', 
-					'Converted <em>%d</em> custom fields.', 
-					$r, 
-					'custom-field-taxonomies' 
-				), number_format_i18n( $r ) )
-			)
-		);
+		return $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", $cf_key ) );
 	}
 
 	function display() {
