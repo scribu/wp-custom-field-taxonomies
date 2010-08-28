@@ -14,7 +14,7 @@ Custom fields are great for storing various meta data about a post. However, if 
 
 With this simple plugin, you can convert all custom fields with a certain key to terms in a certain taxonomy, while maintaining the post association.
 
-To register custom taxonomies, you can use a plugin like [Simple Taxonomies](http://wordpress.org/extend/plugins/simple-taxonomies/).
+**Note:** If you're looking for the old version, see [Query Custom Fields](http://wordpress.org/extend/plugins/query-custom-fields/)
 
 == Installation ==
 
