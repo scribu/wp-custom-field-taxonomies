@@ -16,6 +16,8 @@ With this simple plugin, you can convert all custom fields with a certain key to
 
 **Note:** If you're looking for the old version, see [Query Custom Fields](http://wordpress.org/extend/plugins/query-custom-fields/)
 
+Links: [Plugin News](http://scribu.net/wordpress/custom-field-taxonomies) | [Author's Site](http://scribu.net)
+
 == Installation ==
 
 1. Unzip the archive and put the folder into your plugins folder (/wp-content/plugins/).
