@@ -9,6 +9,7 @@ Plugin URI: http://scribu.net/wordpress/custom-field-taxonomies
 Text Domain: custom-field-taxonomies
 Domain Path: /lang
 
+
 Copyright (C) 2010 Cristi Burcă (scribu@gmail.com)
 
 This program is free software; you can redistribute it and/or modify

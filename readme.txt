@@ -10,7 +10,7 @@ Convert custom fields to tags, categories or taxonomy terms
 
 == Description ==
 
-Custom fields are great for storing various meta data about a post. However, if you routinely need to display posts that have a certain custom field value, you should consider switching to a custom taxonomy. [Taxonomies](http://codex.wordpress.org/Custom_Taxonomies) are similar to custom fields, except they are optimized for grouping posts. Taxonomies you are probably familiar with are tags and categories.
+Custom fields are great for storing various meta data about a post. However, if you routinely need to display posts that have a certain custom field value, you should consider switching to a [custom taxonomy](http://codex.wordpress.org/Custom_Taxonomies), which is better suited for grouping posts.
 
 With this simple plugin, you can convert all custom fields with a certain key to terms in a certain taxonomy, while maintaining the post association.
 
