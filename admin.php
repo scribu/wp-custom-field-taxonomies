@@ -142,7 +142,7 @@ class CFT_Admin {
 
 	protected function get_tax_list() {
 		$taxonomies = array();
-		foreach ( get_object_taxonomies( 'post', 'objects' ) as $tax_name => $tax_obj )
+		foreach ( get_taxonomies( array( 'show_ui' => true ), 'objects' ) as $tax_name => $tax_obj )
 			$taxonomies[$tax_name] = $tax_obj->label ? $tax_obj->label : $tax_name;
 
 		return $taxonomies;
