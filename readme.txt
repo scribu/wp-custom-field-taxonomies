@@ -39,6 +39,9 @@ Make sure your host is running PHP 5. The only foolproof way to do this is to ad
 
 == Changelog ==
 
+= 2.0.2 =
+* more useful error message
+
 = 2.0.1 =
 * fixed error with existing terms
 * proper handling of custom fields with ',' in them
