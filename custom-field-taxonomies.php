@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Custom Field Taxonomies
-Version: 2.0.2-alpha
+Version: 2.0.2
 Description: Convert custom fields to tags, categories or taxonomy terms
 Author: scribu
 Author URI: http://scribu.net/
@@ -10,7 +10,7 @@ Text Domain: custom-field-taxonomies
 Domain Path: /lang
 
 
-Copyright (C) 2010 Cristi Burcă (scribu@gmail.com)
+Copyright (C) 2010-2011 Cristi Burcă (scribu@gmail.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
