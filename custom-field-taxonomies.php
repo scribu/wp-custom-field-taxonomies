@@ -8,8 +8,6 @@ Author URI: http://scribu.net/
 Plugin URI: http://scribu.net/wordpress/custom-field-taxonomies
 Text Domain: custom-field-taxonomies
 Domain Path: /lang
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
 if ( !is_admin() )
