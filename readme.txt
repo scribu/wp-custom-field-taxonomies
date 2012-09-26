@@ -1,9 +1,9 @@
 === Custom Field Taxonomies ===
 Contributors: scribu
 Tags: custom fields, meta, metadata, taxonomy
-Requires at least: 3.0
-Tested up to: 3.2
-Stable tag: 2.0.2
+Requires at least: 3.2
+Tested up to: 3.4
+Stable tag: 2.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,10 @@ Make sure your host is running PHP 5. The only foolproof way to do this is to ad
 1. The utility
 
 == Changelog ==
+
+= 2.0.3 =
+* fixed severe bug in custom field dropdown
+* updated scbFramework
 
 = 2.0.2 =
 * more detailed error messages
