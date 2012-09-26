@@ -86,7 +86,7 @@ class CFT_Admin {
 				$terms[ $i ] = (int) $term['term_id'];
 			}
 
-			wp_set_object_terms( $row->post_id, $terms, $taxonomy, true );
+			wp_set_post_terms( $row->post_id, $terms, $taxonomy, true );
 		}
 
 		return $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->postmeta WHERE meta_key = %s", $cf_key ) );
