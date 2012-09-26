@@ -125,19 +125,13 @@ class CFT_Admin {
 	protected function get_cf_key_list() {
 		global $wpdb;
 
-		$keys = $wpdb->get_col( "
+		return $wpdb->get_col( "
 			SELECT meta_key
 			FROM $wpdb->postmeta
 			GROUP BY meta_key
 			HAVING meta_key NOT LIKE '\_%'
+			ORDER BY meta_key ASC
 		" );
-
-		if ( $keys )
-			natcasesort( $keys );
-		else
-			$keys = array();
-
-		return $keys;
 	}
 
 	protected function get_tax_list() {
